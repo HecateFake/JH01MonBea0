@@ -118,7 +118,20 @@
 //====================================================应用组件层=====================================================
 
 //=====================================================用户层=======================================================
-
+#include "ladrc.h"
+#include "openMorph.h"
+#include "pid.h"
+#include "lowPassFilter.h"
+#include "schmitt.h"
+#include "camera.h"
+#include "motor.h"
+#include "data_send.h"
+#include "imu.h"
+#include "magnaticEncoder.h"
+#include "loop.h"
+#include "mahony.h"
+#include "menu.h"
+#include "small_driver_uart_control.h"
 //=====================================================用户层=======================================================
 
 #endif
