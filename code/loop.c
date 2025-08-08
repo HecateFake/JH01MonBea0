@@ -276,7 +276,6 @@ static void ultimateMotorControl(void)
     // 设置电机转速
     sMotorSetting(sPwm, 10000);
     small_driver_set_duty(rRolPwm, -lRolPwm);
-    // small_driver_set_duty(2000, -2000);
 }
 //--------------------------------------------------------------------------------------------------------
 

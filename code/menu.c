@@ -381,7 +381,8 @@ static inline void cameraShow(int8_t* showType)
     for (uint8_t i = 0; i < menuType[0].typeOptionCount; i++)
     {
         ips200_show_string(194, 34 * i + 1, menuType[0].typeOptionName[i]);
-        ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
+        if (i == 4 || i == 5 || i == 6) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
+        else ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
         ips200_draw_line(190, 17 * (2 * i + 1) + 1 - 1, 318, 17 * (2 * i + 1) + 1 - 1, RGB565_BLUE);
         if (i < menuType[0].typeOptionCount - 1) ips200_draw_line(190, 17 * (2 * i + 2) + 1 - 1, 318, 17 * (2 * i + 2) + 1 - 1, RGB565_GREEN);
     }

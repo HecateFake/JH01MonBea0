@@ -79,8 +79,8 @@ void magnaticEncoderGetData(void)
 {
     magnaticEncoderGetAng();
 
-    int16_t delta0 = (int16_t)magEncAng[magEnc0] - (int16_t)magEncAngLast[magEnc0];
-    int16_t delta1 = (int16_t)magEncAng[magEnc1] - (int16_t)magEncAngLast[magEnc1];
+    int16_t delta0 = (int16_t) magEncAng[magEnc0] - (int16_t) magEncAngLast[magEnc0];
+    int16_t delta1 = (int16_t) magEncAng[magEnc1] - (int16_t) magEncAngLast[magEnc1];
 
     if (delta0 > 8192)
         loopCount0--;
@@ -91,46 +91,46 @@ void magnaticEncoderGetData(void)
     else if (delta1 < -8192)
         loopCount1++;
 
-    estVel0 = (loopCount0 - loopCountLast0) * (16384) + (float)delta0;
-    estVel1 = (loopCount1 - loopCountLast1) * (16384) + (float)delta1;
+    estVel0 = (loopCount0 - loopCountLast0) * (16384) + (float) delta0;
+    estVel1 = (loopCount1 - loopCountLast1) * (16384) + (float) delta1;
 
     loopCountLast0 = loopCount0;
     loopCountLast1 = loopCount1;
 
-//    float ang0 = (float)loopCount0 * (2.0f * PI) + (float)magEncAng[magEnc0] * (2.0f * PI / 16384.0f);
-//    float ang1 = (float)loopCount1 * (2.0f * PI) + (float)magEncAng[magEnc1] * (2.0f * PI / 16384.0f);
-//
-//    if (magSpeFirstFlag)
-//    {
-//        estPos0 = ang0;
-//        estPos1 = ang1;
-//        magSpeFirstFlag = 0;
-//    }
-//
-//    estPos0 += estVel0 * speedDt;
-//    estPos1 += estVel1 * speedDt;
-//
-//    float err0 = ang0 - estPos0;
-//    float err1 = ang1 - estPos1;
-//
-//    err0 = fmodf(err0, 2.0f * PI);
-//    err1 = fmodf(err1, 2.0f * PI);
-//    if (err0 > PI)
-//        err0 -= 2.0f * PI;
-//    else if (err0 < -PI)
-//        err0 += 2.0f * PI;
-//    if (err1 > PI)
-//        err1 -= 2.0f * PI;
-//    else if (err1 < -PI)
-//        err1 += 2.0f * PI;
-//
-//    estPos0 += pllKp * err0 * speedDt;
-//    estVel0 += pllKi * err0 * speedDt;
-//    estPos1 += pllKp * err1 * speedDt;
-//    estVel1 += pllKi * err1 * speedDt;
-//
-//    if (fabs(estVel0) < velThr)
-//        estVel0 = 0.0f;
-//    if (fabs(estVel1) < velThr)
-//        estVel1 = 0.0f;
+    //    float ang0 = (float)loopCount0 * (2.0f * PI) + (float)magEncAng[magEnc0] * (2.0f * PI / 16384.0f);
+    //    float ang1 = (float)loopCount1 * (2.0f * PI) + (float)magEncAng[magEnc1] * (2.0f * PI / 16384.0f);
+    //
+    //    if (magSpeFirstFlag)
+    //    {
+    //        estPos0 = ang0;
+    //        estPos1 = ang1;
+    //        magSpeFirstFlag = 0;
+    //    }
+    //
+    //    estPos0 += estVel0 * speedDt;
+    //    estPos1 += estVel1 * speedDt;
+    //
+    //    float err0 = ang0 - estPos0;
+    //    float err1 = ang1 - estPos1;
+    //
+    //    err0 = fmodf(err0, 2.0f * PI);
+    //    err1 = fmodf(err1, 2.0f * PI);
+    //    if (err0 > PI)
+    //        err0 -= 2.0f * PI;
+    //    else if (err0 < -PI)
+    //        err0 += 2.0f * PI;
+    //    if (err1 > PI)
+    //        err1 -= 2.0f * PI;
+    //    else if (err1 < -PI)
+    //        err1 += 2.0f * PI;
+    //
+    //    estPos0 += pllKp * err0 * speedDt;
+    //    estVel0 += pllKi * err0 * speedDt;
+    //    estPos1 += pllKp * err1 * speedDt;
+    //    estVel1 += pllKi * err1 * speedDt;
+    //
+    //    if (fabs(estVel0) < velThr)
+    //        estVel0 = 0.0f;
+    //    if (fabs(estVel1) < velThr)
+    //        estVel1 = 0.0f;
 }

@@ -14,10 +14,10 @@
 #include "openMorph.h"
 #include "schmitt.h"
 
-extern float visionErr; // 视觉误差
+extern float visionErr;  // 视觉误差
 
-extern float thresholdLow;  // 二值化低阈值
-extern float thresholdHigh; // 二值化高阈值
+extern float thresholdLow;   // 二值化低阈值
+extern float thresholdHigh;  // 二值化高阈值
 
 extern float visionCenter;
 extern float visionPolarity;

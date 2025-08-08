@@ -7,7 +7,6 @@
 
 #include "openMorph.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -182,14 +181,8 @@ void twoPassFourConnectedAreaProcess(BEAINF* obj)
             g_labMap[i] = ++lab;  // 新标签
             g_labelEquivalence[lab] = lab;
         }
-        else if (left && !up)
-        {
-            g_labMap[i] = left;  // 使用左边标签
-        }
-        else if (!left && up)
-        {
-            g_labMap[i] = up;  // 使用上边标签
-        }
+        else if (left && !up) g_labMap[i] = left;  // 使用左边标签
+        else if (!left && up) g_labMap[i] = up;    // 使用上边标签
         else
         {
             // 两个标签合并
@@ -273,21 +266,11 @@ void twoPassFourConnectedAreaProcess(BEAINF* obj)
         // 上帧无灯：选择面积最大的信标
         else if (obj->selectedIndex == 100 || obj->sbea[obj->beaCount].beaArea > obj->sbea[obj->selectedIndex].beaArea) obj->selectedIndex = obj->beaCount;
 
-        // 边界检查，防止数组越界
-        if (obj->sbea[obj->beaCount].beaX < obj->data->width && obj->sbea[obj->beaCount].beaY < obj->data->height)
-        {
-            // 标记水平线
-            for (uint32_t x = 0; x < obj->data->width; x++)
-            {
-                obj->show->data[obj->sbea[obj->beaCount].beaY * obj->data->width + x] = cReverse(obj->background);
-            }
+        // 标记水平线
+        for (uint16_t x = 0; x < obj->data->width; x++) obj->show->data[obj->sbea[obj->beaCount].beaY * obj->data->width + x] = cReverse(obj->background);
 
-            // 标记垂直线
-            for (uint32_t y = 0; y < obj->data->height; y++)
-            {
-                obj->show->data[y * obj->data->width + obj->sbea[obj->beaCount].beaX] = cReverse(obj->background);
-            }
-        }
+        // 标记垂直线
+        for (uint16_t y = 0; y < obj->data->height; y++) obj->show->data[y * obj->data->width + obj->sbea[obj->beaCount].beaX] = cReverse(obj->background);
 
         obj->beaCount++;
     }
@@ -339,10 +322,7 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
             g_labelEquivalence[lab] = lab;
             // printf("%u:%u\n", lab, g_labelEquivalence[lab]);
         }
-        else if (validCount == 1)
-        {
-            g_labMap[i] = validLabels[0];
-        }
+        else if (validCount == 1) g_labMap[i] = validLabels[0];
         else
         {
             // 找到最小标签
@@ -397,7 +377,7 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
     for (uint16_t i = 0; i < tempBeaCount; i++)
     {
         // 跳过空区域
-        if (g_tempBea[i].beaArea == 0 || obj->beaCount > 99) continue;
+        if (g_tempBea[i].beaArea == 0 || obj->beaCount >= 100) continue;
 
         // 计算质心
         g_tempBea[i].beaX = (uint32_t) ((float) g_tempBea[i].beaX / (float) g_tempBea[i].beaArea);
@@ -430,22 +410,11 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
         // 上帧无灯：选择面积最大的信标
         else if (obj->selectedIndex == 100 || obj->sbea[obj->beaCount].beaArea > obj->sbea[obj->selectedIndex].beaArea) obj->selectedIndex = obj->beaCount;
 
+        // 标记水平线
+        for (uint16_t x = 0; x < obj->data->width; x++) obj->show->data[obj->sbea[obj->beaCount].beaY * obj->data->width + x] = cReverse(obj->background);
 
-        // 边界检查，防止数组越界
-        if (obj->sbea[obj->beaCount].beaX < obj->data->width && obj->sbea[obj->beaCount].beaY < obj->data->height)
-        {
-            // 标记水平线
-            for (uint16_t x = 0; x < obj->data->width; x++)
-            {
-                obj->show->data[obj->sbea[obj->beaCount].beaY * obj->data->width + x] = cReverse(obj->background);
-            }
-
-            // 标记垂直线
-            for (uint16_t y = 0; y < obj->data->height; y++)
-            {
-                obj->show->data[y * obj->data->width + obj->sbea[obj->beaCount].beaX] = cReverse(obj->background);
-            }
-        }
+        // 标记垂直线
+        for (uint16_t y = 0; y < obj->data->height; y++) obj->show->data[y * obj->data->width + obj->sbea[obj->beaCount].beaX] = cReverse(obj->background);
 
         obj->beaCount++;
     }

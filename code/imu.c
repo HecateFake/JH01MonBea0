@@ -14,8 +14,8 @@
 #include "lowPassFilter.h"
 #include "mahony.h"
 
-postureData imuData;                // 定义姿态结构体
-float quaternion[4] = {1, 0, 0, 0}; // 定义姿态四元数
+postureData imuData;                 // 定义姿态结构体
+float quaternion[4] = {1, 0, 0, 0};  // 定义姿态四元数
 
 // 零漂计算函数
 void getOffset(postureData *obj)
@@ -71,14 +71,14 @@ void postureProcess(postureData *obj)
     imu660rx_get_acc();
     imu660rx_get_gyro();
 
-    obj->ax = (float)imu660rx_acc_x * 4.880429477794045876e-4f;
-    obj->ay = (float)imu660rx_acc_y * 4.880429477794045876e-4f;
-    obj->az = (float)imu660rx_acc_z * 4.880429477794045876e-4f;
+    obj->ax = (float) imu660rx_acc_x * 4.880429477794045876e-4f;
+    obj->ay = (float) imu660rx_acc_y * 4.880429477794045876e-4f;
+    obj->az = (float) imu660rx_acc_z * 4.880429477794045876e-4f;
 
     obj->gx = (imu660rx_gyro_x - obj->xOffset) * 1.220509966e-3f;
     obj->gy = (imu660rx_gyro_y - obj->yOffset) * 1.220509966e-3f;
     obj->gz = (imu660rx_gyro_z - obj->zOffset) * 1.220509966e-3f;
 
-    MahonyAHRSupdateIMU(quaternion, obj->gx, obj->gy, obj->gz, obj->ax, obj->ay, obj->az); // 马哈尼滤波
-    quat2euler(quaternion, &obj->pitch, &obj->roll, &obj->yaw);                            // 四元数转换欧拉角
+    MahonyAHRSupdateIMU(quaternion, obj->gx, obj->gy, obj->gz, obj->ax, obj->ay, obj->az);  // 马哈尼滤波
+    quat2euler(quaternion, &obj->pitch, &obj->roll, &obj->yaw);                             // 四元数转换欧拉角
 }
