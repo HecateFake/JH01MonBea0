@@ -14,16 +14,21 @@
 #include "openMorph.h"
 #include "schmitt.h"
 
-extern uint8_t thresholdLow;  // 二值化低阈值
-extern uint8_t thresholdHigh; // 二值化高阈值
+extern float visionErr; // 视觉误差
 
-extern uint16_t visionCenter;
+extern float thresholdLow;  // 二值化低阈值
+extern float thresholdHigh; // 二值化高阈值
+
+extern float visionCenter;
+extern float visionPolarity;
 
 extern float visionErrRange;
-extern float vidionPitErr;
+extern float visionPitErr;
 
 extern float pMin;
 extern float pMax;
+
+extern float areaSelected;
 
 extern uint8_t binRel[MT9V03X_W * MT9V03X_H];
 extern uint8_t binBuf[MT9V03X_W * MT9V03X_H];

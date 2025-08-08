@@ -51,6 +51,7 @@
 
 static uint32               scanner_period = 0;                                 // 按键的扫描周期
 static uint32               key_press_time[KEY_NUMBER];                         // 按键信号持续时长
+static uint32               key_short_press_hold_time[KEY_NUMBER];              // 短按状态保持计时器
 static key_state_enum       key_state[KEY_NUMBER];                              // 按键状态
 
 static const gpio_pin_enum  key_index[KEY_NUMBER] = KEY_LIST;                   // 按键列表
@@ -67,21 +68,37 @@ void key_scanner (void)
     uint8 i = 0;
     for(i = 0; KEY_NUMBER > i; i ++)
     {
+        // 处理短按状态保持时间 - 使用长按阈值作为超时时间
+        if(KEY_SHORT_PRESS == key_state[i])
+        {
+            key_short_press_hold_time[i] ++;
+            if(KEY_LONG_PRESS_PERIOD / scanner_period <= key_short_press_hold_time[i])
+            {
+                key_state[i] = KEY_RELEASE;                                     // 短按状态超时，自动清除
+                key_short_press_hold_time[i] = 0;
+            }
+        }
+        
         if(KEY_RELEASE_LEVEL != gpio_get_level(key_index[i]))                   // 按键按下
         {
             key_press_time[i] ++;
             if(KEY_LONG_PRESS_PERIOD / scanner_period <= key_press_time[i])
             {
                 key_state[i] = KEY_LONG_PRESS;
+                key_short_press_hold_time[i] = 0;                               // 清除短按保持计时器
             }
         }
         else                                                                    // 按键释放
         {
-            if((KEY_LONG_PRESS != key_state[i]) && (KEY_MAX_SHOCK_PERIOD <= key_press_time[i]) && (KEY_LONG_PRESS_PERIOD > key_press_time[i]))
+            if((KEY_LONG_PRESS != key_state[i]) && 
+               (KEY_SHORT_PRESS != key_state[i]) &&                            // 如果当前不是短按状态保持期
+               (KEY_MAX_SHOCK_PERIOD / scanner_period <= key_press_time[i]) && 
+               (KEY_LONG_PRESS_PERIOD / scanner_period > key_press_time[i]))
             {
                 key_state[i] = KEY_SHORT_PRESS;
+                key_short_press_hold_time[i] = 0;                               // 重置短按保持计时器
             }
-            else
+            else if(KEY_SHORT_PRESS != key_state[i])                            // 如果不是短按保持期，才清除状态
             {
                 key_state[i] = KEY_RELEASE;
             }
@@ -95,23 +112,32 @@ void key_scanner (void)
 // 参数说明     key_n           按键索引
 // 返回参数     key_state_enum  按键状态
 // 使用示例     key_get_state(KEY_1);
-// 备注信息
+// 备注信息     获取到短按状态时会自动清除该状态，避免重复触发
 //-------------------------------------------------------------------------------------------------------------------
 key_state_enum key_get_state (key_index_enum key_n)
 {
-    return key_state[key_n];
+    key_state_enum current_state = key_state[key_n];
+    if(KEY_SHORT_PRESS == current_state)
+    {
+        key_state[key_n] = KEY_RELEASE;                                         // 获取短按状态时自动清除
+        key_short_press_hold_time[key_n] = 0;                                   // 清除短按保持计时器
+    }
+    return current_state;
 }
 
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介     获取按键状态并自动清除短按状态
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     清除指定按键状态
 // 参数说明     key_n           按键索引
 // 返回参数     void            无
 // 使用示例     key_clear_state(KEY_1);
-// 备注信息
+// 备注信息     手动清除按键状态，包括短按保持时间
 //-------------------------------------------------------------------------------------------------------------------
 void key_clear_state (key_index_enum key_n)
 {
     key_state[key_n] = KEY_RELEASE;
+    key_short_press_hold_time[key_n] = 0;                                       // 同时清除短按保持计时器
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -119,14 +145,16 @@ void key_clear_state (key_index_enum key_n)
 // 参数说明     void            无
 // 返回参数     void            无
 // 使用示例     key_clear_all_state();
-// 备注信息
+// 备注信息     清除所有按键状态和短按保持计时器
 //-------------------------------------------------------------------------------------------------------------------
 void key_clear_all_state (void)
 {
-    key_state[0] = KEY_RELEASE;
-    key_state[1] = KEY_RELEASE;
-    key_state[2] = KEY_RELEASE;
-    key_state[3] = KEY_RELEASE;
+    uint8 i = 0;
+    for(i = 0; KEY_NUMBER > i; i++)
+    {
+        key_state[i] = KEY_RELEASE;
+        key_short_press_hold_time[i] = 0;
+    }
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -134,7 +162,7 @@ void key_clear_all_state (void)
 // 参数说明     period          按键扫描周期 以毫秒为单位
 // 返回参数     void
 // 使用示例     key_init(10);
-// 备注信息
+// 备注信息     初始化所有按键GPIO和状态变量
 //-------------------------------------------------------------------------------------------------------------------
 void key_init (uint32 period)
 {
@@ -144,6 +172,7 @@ void key_init (uint32 period)
     {
         gpio_init(key_index[loop_temp], GPI, GPIO_HIGH, GPI_PULL_UP);
         key_state[loop_temp] = KEY_RELEASE;
+        key_short_press_hold_time[loop_temp] = 0;                               // 初始化短按保持计时器
     }
     scanner_period = period;
 }

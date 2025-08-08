@@ -50,8 +50,8 @@ float dynamicXeroPointGain1 = 0.0021f;  // 左转压弯增益
 float pitMid = 0.057f;
 float rolMid = -1.542f;
 
-uint16_t imageAreaMin = 3;
-uint16_t imageAreaMax = 300;
+float imageAreaMin = 3;
+float imageAreaMax = 300;
 
 float upDeadZone = 0.05f;     // 图像处理死区
 float downDeadZone = 0.30f;   // 图像处理死区
@@ -80,7 +80,7 @@ void controllerInit(void)
 
     sEncCleCon();  // 清除行进轮编码器计数
 
-    twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, imageAreaMin, imageAreaMax, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
+    twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, (uint16_t) imageAreaMin, (uint16_t) imageAreaMax, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
 
     magnaticEncoderPhaseLockedLoopInit(150.0f, 0.25f, 0.008f);  // 磁编码器锁相环初始化
 
@@ -125,10 +125,8 @@ static int outOfControlSafetyDetection(postureData *obj)
 // 动态零点计算函数--------------------------------------------------------------------------------------------------------
 static float Dynamic_control(float Speed, float Target_TurnAngleSpeed)
 {
-    if (Target_TurnAngleSpeed > 0)
-        return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain0;
-    else
-        return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain1;
+    if (Target_TurnAngleSpeed > 0) return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain0;
+    else return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain1;
 }
 //--------------------------------------------------------------------------------------------------------
 
@@ -287,6 +285,8 @@ static void ultimateMotorControl(void)
 uint8_t state = 0;        // 直立使能标识位
 uint8_t visionState = 0;  // 视觉处理使能标识位
 static short timer = 0;   // 定时器中断时间标识位
+uint8_t buzzerState = 0;
+static uint8_t buzzerCount = 0;
 void pit0(void)
 {
     timer++;  // 计时标识自增
@@ -323,6 +323,30 @@ void pit0(void)
 
     if (timer == angPeriodMultiple * velPeriodMultiple)
         timer = 0;  // 时间标识位清零
+
+    key_scanner();  // 按键扫描函数
+
+    if (buzzerState == 0)
+    {
+        gpio_low(buzzerPin);
+        buzzerCount = 0;
+    }
+    else
+    {
+        buzzerCount++;
+        if (buzzerCount == 50 || buzzerCount == 60)
+        {
+            if (gpio_get_level(buzzerPin) == GPIO_LOW)
+            {
+                gpio_high(buzzerPin);
+            }
+            else
+            {
+                gpio_low(buzzerPin);
+                buzzerCount = 0;
+            }
+        }
+    }
 }
 //--------------------------------------------------------------------------------------------------------
 // 定时器中断函数1
@@ -337,8 +361,6 @@ void pit2(void)
 {
 }
 //--------------------------------------------------------------------------------------------------------
-uint8_t buzzerState = 0;
-static uint8_t buzzerCount = 0;
 // 定时器中断函数3
 void pit3(void)
 {

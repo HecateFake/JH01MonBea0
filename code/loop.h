@@ -24,8 +24,8 @@ extern float dynamicXeroPointGain1;  // 左转压弯增益
 extern float pitMid;
 extern float rolMid;
 
-extern uint16_t imageAreaMin;
-extern uint16_t imageAreaMax;
+extern float imageAreaMin;
+extern float imageAreaMax;
 
 extern float upDeadZone;
 extern float downDeadZone;

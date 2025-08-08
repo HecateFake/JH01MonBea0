@@ -57,10 +57,9 @@ int core0_main(void)
 
     gpio_init(buzzerPin, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 蜂鸣器初始化
 
-    ips200_init(IPS200_TYPE_PARALLEL8);
-    // tft180_init();         // 屏幕初始化
-    key_init(10);
-    //menuInit();
+    ips200_init(IPS200_TYPE_SPI);
+    key_init(1);
+    menuInit();
 
     controllerInit();  // 控制器初始化
 
@@ -73,18 +72,18 @@ int core0_main(void)
     pit_ms_init(CCU60_CH0, 1);
     pit_us_init(CCU60_CH1, 200);
     // pit_ms_init(CCU61_CH0, 1);
-    pit_ms_init(CCU61_CH1, 10);
+    // pit_ms_init(CCU61_CH1, 10);
 
     // 测试函数--------------------------------------------------------------------------------------------------------
     // wireless_uart_init();  // 无线串口初始化
     // 测试函数--------------------------------------------------------------------------------------------------------
 
-    // 此处编写用户代码 例如外设初始化代码等
+    // 此处编写用户代码 例如外设初始化代码
     cpu_wait_event_ready();  // 等待所有核心初始化完毕
     while (TRUE)
     {
         // 此处编写需要循环执行的代码
-
+        
         //  此处编写需要循环执行的代码
     }
 }
