@@ -15,7 +15,7 @@
 static uint8_t g_morphBuffer[UNIFORMLY_PRE_ALLOCATED_BUFFER_SIZE];  // 形态学运算临时缓冲区
 static uint16_t g_labMap[UNIFORMLY_PRE_ALLOCATED_BUFFER_SIZE];
 static uint16_t g_labelEquivalence[UNIFORMLY_PRE_ALLOCATED_BUFFER_SIZE];
-static SBEA g_tempBea[100];  // 全局临时BEA数组，避免栈分配
+static SBEA g_tempBea[101];  // 全局临时BEA数组，避免栈分配
 
 void morphErode(CroppedImage8* src, CroppedImage8* kernel, CroppedImage8* dst, uint8_t background)
 {
@@ -131,6 +131,8 @@ void rgb565toBinary(CroppedImage16* src, CroppedImage8* dst, uint8_t background,
 
 void twoPassConnectedAreaInit(BEAINF* obj, uint8_t background, CroppedImage8* src, CroppedImage8* sho, uint16_t areaMin, uint16_t areaMax, float leftDeadZone, float rightDeadZone, float topDeadZone, float bottomDeadZone)
 {
+    memset(obj->sbea, 0, 101 * sizeof(SBEA));
+
     obj->background = background;
 
     obj->data = src;
@@ -195,7 +197,7 @@ void twoPassFourConnectedAreaProcess(BEAINF* obj)
 
     // second pass
     // 清零全局临时BEA数组
-    memset(g_tempBea, 0, 100 * sizeof(SBEA));
+    memset(g_tempBea, 0, 101 * sizeof(SBEA));
     uint16_t tempBeaCount = 0;
 
     // 路径压缩优化标签等价表
@@ -340,7 +342,7 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
 
     // second pass
     // 清零全局临时BEA数组（复用同一个全局数组）
-    memset(g_tempBea, 0, 100 * sizeof(SBEA));
+    memset(g_tempBea, 0, 101 * sizeof(SBEA));
     uint16_t tempBeaCount = 0;
 
     // 路径压缩优化标签等价表
@@ -374,10 +376,12 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
     obj->beaCount = 0;          // 重置计数器
     obj->selectedIndex = 100;   // 100表示未选中任何区域
     float minDistance = -1.0f;  // 使用-1表示未初始化
+
     for (uint16_t i = 0; i < tempBeaCount; i++)
     {
         // 跳过空区域
         if (g_tempBea[i].beaArea == 0 || obj->beaCount >= 100) continue;
+        
 
         // 计算质心
         g_tempBea[i].beaX = (uint32_t) ((float) g_tempBea[i].beaX / (float) g_tempBea[i].beaArea);

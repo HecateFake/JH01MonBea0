@@ -8,6 +8,9 @@
 #ifndef CODE_MOTOR_H_
 #define CODE_MOTOR_H_
 
+#include "zf_driver_pwm.h"
+#include "zf_driver_gpio.h"
+
 #define singleMotorDir P21_4            // 行进轮方向引脚
 #define singleMotorPwm ATOM0_CH3_P21_5  // 行进轮pwm引脚
 

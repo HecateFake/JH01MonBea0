@@ -21,7 +21,7 @@ void motorSetting(float target, float max, gpio_pin_enum dirPin, pwm_channel_enu
         gpio_set_level(dirPin, GPIO_HIGH);  // 方向设置
         if (target > max)
             target = max;                       // 限制占空比
-        pwm_set_duty(pwmPin, (uint32) target);  // 设置占空比
+        pwm_set_duty(pwmPin, (uint32_t) target);  // 设置占空比
     }
 
     // 反转
@@ -30,6 +30,6 @@ void motorSetting(float target, float max, gpio_pin_enum dirPin, pwm_channel_enu
         gpio_set_level(dirPin, GPIO_LOW);  // 方向设置
         if ((-target) > max)
             target = (-max);                       // 限制占空比
-        pwm_set_duty(pwmPin, (uint32) (-target));  // 设置占空比
+        pwm_set_duty(pwmPin, (uint32_t) (-target));  // 设置占空比
     }
 }

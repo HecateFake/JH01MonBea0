@@ -14,8 +14,8 @@
 #include "lowPassFilter.h"
 #include "mahony.h"
 
-postureData imuData;                 // 定义姿态结构体
-float quaternion[4] = {1, 0, 0, 0};  // 定义姿态四元数
+postureData imuData = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};                 // 定义姿态结构体
+static float quaternion[4] = {1, 0, 0, 0};  // 定义姿态四元数
 
 // 零漂计算函数
 void getOffset(postureData *obj)

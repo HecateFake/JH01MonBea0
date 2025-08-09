@@ -111,19 +111,16 @@ float yawOmeTar = 0;  // 偏航速度传递变量
 //--------------------------------------------------------------------------------------------------------
 
 // 失控判断函数(返回布尔值)--------------------------------------------------------------------------------------------------------
-static int outOfControlSafetyDetection(postureData *obj)
+static inline int outOfControlSafetyDetection(postureData *obj)
 {
-    if (obj->pitch < rolSafeRange[0] || obj->pitch > rolSafeRange[1])
-        return TRUE;
-    else if (obj->roll < -0.5 || obj->roll > 0.5)
-        return TRUE;
-    else
-        return FALSE;
+    if (obj->pitch < rolSafeRange[0] || obj->pitch > rolSafeRange[1]) return TRUE;
+    else if (obj->roll < -0.5 || obj->roll > 0.5) return TRUE;
+    else return FALSE;
 }
 //--------------------------------------------------------------------------------------------------------
 
 // 动态零点计算函数--------------------------------------------------------------------------------------------------------
-static float Dynamic_control(float Speed, float Target_TurnAngleSpeed)
+static inline float Dynamic_control(float Speed, float Target_TurnAngleSpeed)
 {
     if (Target_TurnAngleSpeed > 0) return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain0;
     else return Speed * Target_TurnAngleSpeed * -dynamicXeroPointGain1;
@@ -131,16 +128,16 @@ static float Dynamic_control(float Speed, float Target_TurnAngleSpeed)
 //--------------------------------------------------------------------------------------------------------
 
 // 控制闭环内部调用函数--------------------------------------------------------------------------------------------------------
+static inline void getVel(void)
+{
+    // 获取行进轮转速
+    lowPassFilter(&pitRpm, (float) sEncGetCon());
+    sEncCleCon();
+}
 // pid速度环 9毫秒一次调用
-static float sRPM = 0;  // 行进轮转速
-static void velLoop(void)
+static inline void velLoop(void)
 {
     pidSetTarget(&pitVel, pitVelTar);  // 传递期望速度
-
-    // 获取行进轮转速
-    sRPM = sEncGetCon();
-    sEncCleCon();
-    lowPassFilter(&pitRpm, (float) sRPM);  // 低通滤波
 
     // 计算俯仰速度环
     pidProcess(&pitVel, pitRpm.filteredValue);
@@ -162,7 +159,7 @@ float rturnAng = 8.5f;
 float lOutAng = 30.0f;
 float rOutAng = 28.5f;
 
-static void angLoop(void)
+static inline void angLoop(void)
 {
     // 传递外环控制值
     float tPitAng = pitMid + pitVel.controlValue;
@@ -212,7 +209,7 @@ static void angLoop(void)
 }
 //--------------------------------------------------------------------------------------------------------
 // pid角速度环 1毫秒一次调用
-static void omeLoop(void)
+static inline void omeLoop(void)
 {
     // 传递外环控制值
     pidSetTarget(&pitOme, pitAng.controlValue);
@@ -230,18 +227,15 @@ static float sPwm = 0;     // 行进轮pwm输出占空比
 static float rRolPwm = 0;  // 右飞轮pwm输出占空比
 static float lRolPwm = 0;  // 左飞轮pwm输出占空比
 #define rolPwmMax 10000.0f
-static void ultimateMotorControl(void)
+static inline void ultimateMotorControl(void)
 {
     // 行进轮控制值叠加死区
     if (fabs(pitOme.controlValue) < deadZone)
     {
-        if (pitOme.controlValue >= 0)
-            sPwm = deadZone;
-        else
-            sPwm = -deadZone;
+        if (pitOme.controlValue >= 0) sPwm = deadZone;
+        else sPwm = -deadZone;
     }
-    else
-        sPwm = pitOme.controlValue;
+    else sPwm = pitOme.controlValue;
 
     // 偏航角差速控制
     if (fabs(yawOme.controlValue) > yawPwmMax)
@@ -264,14 +258,10 @@ static void ultimateMotorControl(void)
     }
 
     // 飞轮转速限幅
-    if (rRolPwm > rolPwmMax)
-        rRolPwm = rolPwmMax;
-    else if (rRolPwm < -rolPwmMax)
-        rRolPwm = -rolPwmMax;
-    if (lRolPwm > rolPwmMax)
-        lRolPwm = rolPwmMax;
-    else if (lRolPwm < -rolPwmMax)
-        lRolPwm = -rolPwmMax;
+    if (rRolPwm > rolPwmMax) rRolPwm = rolPwmMax;
+    else if (rRolPwm < -rolPwmMax) rRolPwm = -rolPwmMax;
+    if (lRolPwm > rolPwmMax) lRolPwm = rolPwmMax;
+    else if (lRolPwm < -rolPwmMax) lRolPwm = -rolPwmMax;
 
     // 设置电机转速
     sMotorSetting(sPwm, 10000);
@@ -291,37 +281,27 @@ void pit0(void)
     timer++;  // 计时标识自增
 
     postureProcess(&imuData);  // 姿态解算
+    if (timer == angPeriodMultiple * velPeriodMultiple) getVel();
 
     if (state)
     {
-        if (outOfControlSafetyDetection(&imuData))  // 姿态安全检测
-        {
-            controllerInit();
-        }
+        if (outOfControlSafetyDetection(&imuData)) controllerInit();
 
-        if (timer == angPeriodMultiple * velPeriodMultiple)
-        {
-            velLoop();
-        }
+        if (timer == angPeriodMultiple * velPeriodMultiple) velLoop();
 
-        if (timer % angPeriodMultiple == 0)
-        {
-            angLoop();
-        }
+        if (timer % angPeriodMultiple == 0) angLoop();
 
         omeLoop();
 
         ultimateMotorControl();  // 电机控制函数
     }
-
     else  // 倒地保护 刹车
     {
         sMotorSetting(0, 0);
         small_driver_set_duty(0, 0);
     }
 
-    if (timer == angPeriodMultiple * velPeriodMultiple)
-        timer = 0;  // 时间标识位清零
+    if (timer == angPeriodMultiple * velPeriodMultiple) timer = 0;  // 时间标识位清零
 
     key_scanner();  // 按键扫描函数
 
@@ -335,10 +315,7 @@ void pit0(void)
         buzzerCount++;
         if (buzzerCount == 50 || buzzerCount == 60)
         {
-            if (gpio_get_level(buzzerPin) == GPIO_LOW)
-            {
-                gpio_high(buzzerPin);
-            }
+            if (gpio_get_level(buzzerPin) == GPIO_LOW) gpio_high(buzzerPin);
             else
             {
                 gpio_low(buzzerPin);
@@ -375,10 +352,7 @@ void pit3(void)
         buzzerCount++;
         if (buzzerCount == 5 || buzzerCount == 6)
         {
-            if (gpio_get_level(buzzerPin) == GPIO_LOW)
-            {
-                gpio_high(buzzerPin);
-            }
+            if (gpio_get_level(buzzerPin) == GPIO_LOW) gpio_high(buzzerPin);
             else
             {
                 gpio_low(buzzerPin);
