@@ -52,10 +52,10 @@ void visionProcessMT9V034(void)
 {
     if (mt9v03x_finish_flag)
     {
-        memcpy(binBuf, mt9v03x_image[0], MT9V03X_W * MT9V03X_H * sizeof(uint8_t));
-        toBinaryDoubleThreshold(&binaryBuffer, &binaryReal, (uint8_t) thresholdHigh, (uint8_t) thresholdLow);  // 二值化处理
+        memcpy(binRel, mt9v03x_image[0], MT9V03X_W * MT9V03X_H * sizeof(uint8_t));
+        toBinaryDoubleThreshold(&binaryReal, &binaryBuffer, (uint8_t) thresholdHigh, (uint8_t) thresholdLow);  // 二值化处理
 
-        morphErode(&binaryReal, &kernelStruct, &binaryBuffer, BLACK);  // 腐蚀运算
+        // morphErode(&binaryReal, &kernelStruct, &binaryBuffer, BLACK);  // 腐蚀运算
 
         twoPassEightConnectedAreaProcess(&beaInf);  // 连通区域处理
 

@@ -374,7 +374,7 @@ static inline void cameraShow(int8_t* showType)
     else if (*showType < 0) *showType = 1;
     ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
     ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint32_t) beaInf.beaCount, 2);
-    ips200_show_gray_image(1, 120, *showType ? binRel : mt9v03x_image[0], 188, 120, 188, 119, 0);
+    ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
     ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
     ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
     ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
@@ -389,7 +389,7 @@ static inline void cameraShow(int8_t* showType)
     for (uint8_t i = 0; i < menuType[0].typeOptionCount; i++)
     {
         ips200_show_string(194, 34 * i + 1, menuType[0].typeOptionName[i]);
-        if (i == 4 || i == 5 || i == 6) ips200_show_float(194, 17 * (2 * i + 1) + 1, (*menuType[0].typeOption[i]), 4, 5);
+        if (i == 4 || i == 5 || i == 6) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
         else ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
         ips200_draw_line(190, 17 * (2 * i + 1) + 1 - 1, 318, 17 * (2 * i + 1) + 1 - 1, RGB565_BLUE);
         if (i < menuType[0].typeOptionCount - 1) ips200_draw_line(190, 17 * (2 * i + 2) + 1 - 1, 318, 17 * (2 * i + 2) + 1 - 1, RGB565_GREEN);
@@ -404,7 +404,7 @@ static inline void thresholdEdit(int8_t* showType, int8_t* editEnum)
     else if (*editEnum < 0) *editEnum = menuType[1].typeOptionCount - 1;
     ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
     ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint32_t) beaInf.beaCount, 2);
-    ips200_show_gray_image(1, 120, *showType ? binRel : mt9v03x_image[0], 188, 120, 188, 119, 0);
+    ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
     ips200_show_string(194, 1, menuType[1].typeName);
     ips200_show_string(194, 54, menuType[1].typeOptionName[0]);
     ips200_show_float(194, 91, *menuType[1].typeOption[0], 4, 5);
@@ -678,6 +678,7 @@ void menuScanner(void)
             else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
             {
                 saveSettingsToFlash();
+                menuInit();
                 controllerInit();
                 menuState = select1;
                 ips200_clear();
