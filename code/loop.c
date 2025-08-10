@@ -102,6 +102,9 @@ void controllerInit(void)
     schmittInit(&sYawErr, 0.3, 0.5, 1);
 
     pidInit(1, &yawOme, 0.0f, -4000.0f, -0.0f, -0.0f);  // 偏航角速度环初始化
+
+    sMotorSetting(0, 0);
+    small_driver_set_duty(0, 0);
 }
 //--------------------------------------------------------------------------------------------------------
 
@@ -294,11 +297,6 @@ void pit0(void)
         omeLoop();
 
         ultimateMotorControl();  // 电机控制函数
-    }
-    else  // 倒地保护 刹车
-    {
-        sMotorSetting(0, 0);
-        small_driver_set_duty(0, 0);
     }
 
     if (timer == angPeriodMultiple * velPeriodMultiple) timer = 0;  // 时间标识位清零

@@ -11,8 +11,8 @@
 #include "zf_driver_pwm.h"
 #include "zf_driver_gpio.h"
 
-#define singleMotorDir P21_4            // 行进轮方向引脚
-#define singleMotorPwm ATOM0_CH3_P21_5  // 行进轮pwm引脚
+#define singleMotorDir P21_5            // 行进轮方向引脚
+#define singleMotorPwm ATOM0_CH2_P21_4  // 行进轮pwm引脚
 
 #define singleEncoderTimer TIM6_ENCODER          // 行进轮编码器计时器
 #define singleEncoderCh1 TIM6_ENCODER_CH1_P20_3  // 行进轮编码器引脚1
