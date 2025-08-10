@@ -6,8 +6,10 @@
  */
 #include "camera.h"
 
-#include "loop.h"
 #include <string.h>
+#include <math.h>
+
+#include "loop.h"
 #include "openMorph.h"
 
 float thresholdLow = 20;    // 二值化低阈值
@@ -24,9 +26,13 @@ float pMax = 2.0f;
 
 float areaSelected = 0.0f;
 
+static inline float dynamicErrGain(BEAINF* obj)
+{
+    return (pMax - (pMax - pMin) * sqrtf((float) obj->sbea[obj->selectedIndex].beaArea / (float) obj->areaRange[1]));
+}
 static inline float errGenerate(BEAINF* obj)
 {
-    if (obj->beaCount) return fRang(((float) obj->sbea[obj->selectedIndex].beaX - visionCenter) * 0.01063829787234042553191489361702f * visionErrRange * (pMax - (pMax - pMin) * ((float) obj->sbea[obj->selectedIndex].beaArea / (float) obj->areaRange[1])), visionErrRange);
+    if (obj->beaCount) return fRang(((float)obj->sbea[obj->selectedIndex].beaX - visionCenter) * dynamicErrGain(obj) * visionErrRange * 0.0106383f, visionErrRange);
     else return (obj->lastFrameSelectedBeaXY[0] > 80) ? (visionPolarity ? visionErrRange : -visionErrRange) : (visionPolarity ? -visionErrRange : visionErrRange);
     return 0.0f;
 }
