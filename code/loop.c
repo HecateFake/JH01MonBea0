@@ -166,7 +166,6 @@ static inline void angLoop(void)
 {
     // 传递外环控制值
     float tPitAng = pitMid + pitVel.controlValue;
-    float tRolAng = rolMid + 0.0001f * rolVel.controlValue;
 
     schmittProcess(&rPitVel, pitRpm.filteredValue);
     schmittProcess(&ePitVel, pitVelTar);
@@ -204,7 +203,7 @@ static inline void angLoop(void)
         }
     }
 
-    pidSetTarget(&rolAng, tRolAng + Dynamic_control(70.0f, yawOmeTar));
+    pidSetTarget(&rolAng, rolMid + 0.0001f * rolVel.controlValue + Dynamic_control(70.0f, yawOmeTar));
 
     // 计算角度环pid
     pidProcess(&pitAng, imuData.roll);
