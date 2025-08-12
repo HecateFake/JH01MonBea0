@@ -17,6 +17,7 @@
 
 extern uint8_t state;        // 直立使能标识位
 extern uint8_t visionState;  // 视觉处理使能标识位
+extern uint8_t testState;    // 测试状态标识位
 
 extern float dynamicXeroPointGain0;  // 右转压弯增益
 extern float dynamicXeroPointGain1;  // 左转压弯增益
@@ -74,6 +75,10 @@ extern SchmittTrigger ePitVel;
 extern SchmittTrigger rYawAng;
 extern SchmittTrigger eYawOme;
 extern SchmittTrigger sYawErr;
+
+extern float sPwm;     // 行进轮pwm输出占空比
+extern float rRolPwm;  // 右飞轮pwm输出占空比
+extern float lRolPwm;  // 左飞轮pwm输出占空比
 
 #define buzzerPin P33_10  // 蜂鸣器引脚
 

@@ -38,19 +38,19 @@ SchmittTrigger sYawErr;
 // 控制器初始化函数--------------------------------------------------------------------------------------------------------
 static float rolSafeRange[2] = {-2.0f, -1.0f};  // 定义横滚角安全范围
 
-float dynamicXeroPointGain0 = 0.0018f;  // 右转压弯增益
+float dynamicXeroPointGain0 = 0.0021f;  // 右转压弯增益
 float dynamicXeroPointGain1 = 0.0021f;  // 左转压弯增益
 
 #define angPeriodMultiple 3  // 角度环周期倍率
 #define velPeriodMultiple 3  // 角速度环周期倍率
 
-#define yawPwmMax 4000.0f  // 飞轮差速最大值
+#define yawPwmMax 2000.0f  // 飞轮差速最大值
 #define deadZone 800.0f    // 行进轮死区
 
-float pitMid = 0.057f;
-float rolMid = -1.542f;
+float pitMid = 0.030f;
+float rolMid = -1.550f;
 
-float imageAreaMin = 3;
+float imageAreaMin = 1;
 float imageAreaMax = 300;
 
 float upDeadZone = 0.05f;     // 图像处理死区
@@ -58,18 +58,23 @@ float downDeadZone = 0.30f;   // 图像处理死区
 float leftDeadZone = 0.00f;   // 图像处理死区
 float rightDeadZone = 0.00f;  // 图像处理死区
 
-float pitOmeP = -1660.0f;
-float pitOmeI = -65.0f;
+float pitOmeP = -800.0f;
+float pitOmeI = -60.0f;
 float pitAngP = 2.5f;
 float pitVelP = -0.0028f;
 float pitVelI = -0.00000f;
 
-float rolOmeP = 1600.0f;
+float rolOmeP = 1100.0f;
 float rolOmeI = 120.0f;
-float rolAngP = 3.5f;
-float rolVelP = -0.1f;
-float rolVelI = -0.0000f;
+float rolAngP = 3.1f;
+float rolVelP = -0.060f;
+float rolVelI = -0.00000f;
 
+uint8_t testState = 0;
+
+float sPwm = 0;     // 行进轮pwm输出占空比
+float rRolPwm = 0;  // 右飞轮pwm输出占空比
+float lRolPwm = 0;  // 左飞轮pwm输出占空比
 void controllerInit(void)
 {
     state = 0;
@@ -103,8 +108,9 @@ void controllerInit(void)
 
     pidInit(1, &yawOme, 0.0f, -4000.0f, -0.0f, -0.0f);  // 偏航角速度环初始化
 
-    sMotorSetting(0, 0);
-    small_driver_set_duty(0, 0);
+    sPwm = 0;
+    lRolPwm = 0;
+    rRolPwm = 0;
 }
 //--------------------------------------------------------------------------------------------------------
 
@@ -153,14 +159,14 @@ static inline void velLoop(void)
 float lStAng = 11.0f;
 float rStAng = 11.0f;
 
-float lReAng = 9.0f;
-float rReAng = 8.0f;
+float lReAng = 11.0f;
+float rReAng = 11.0f;
 
-float lturnAng = 9.0f;
-float rturnAng = 8.5f;
+float lturnAng = 11.0f;
+float rturnAng = 11.0f;
 
-float lOutAng = 30.0f;
-float rOutAng = 28.5f;
+float lOutAng = 20.0f;
+float rOutAng = 20.0f;
 
 static inline void angLoop(void)
 {
@@ -172,36 +178,40 @@ static inline void angLoop(void)
     schmittProcess(&rYawAng, fabs(tDeg(imuData.pitch - rolMid)));
     schmittProcess(&eYawOme, fabs(yawOmeTar));
 
-    if (yawOmeTar <= 0)
+    if (!testState)
     {
-        buzzerState = 0;
-        if (rYawAng.outputState == 0 && eYawOme.outputState == 1)
-            pidSetTarget(&pitAng, tPitAng - tRad(lReAng));
-        else if (rYawAng.outputState == 0 && eYawOme.outputState == 0)
-            pidSetTarget(&pitAng, tPitAng - tRad(lStAng));
-        else if (rYawAng.outputState == 1 && eYawOme.outputState == 0)
-            pidSetTarget(&pitAng, tPitAng - tRad(lOutAng));
-        else if (rYawAng.outputState == 1 && eYawOme.outputState == 1)
+        if (yawOmeTar <= 0)
         {
-            pidSetTarget(&pitAng, tPitAng - tRad(lturnAng));
-            buzzerState = 1;
+            buzzerState = 0;
+            if (rYawAng.outputState == 0 && eYawOme.outputState == 1)
+                pidSetTarget(&pitAng, tPitAng - tRad(lReAng));
+            else if (rYawAng.outputState == 0 && eYawOme.outputState == 0)
+                pidSetTarget(&pitAng, tPitAng - tRad(lStAng));
+            else if (rYawAng.outputState == 1 && eYawOme.outputState == 0)
+                pidSetTarget(&pitAng, tPitAng - tRad(lOutAng));
+            else if (rYawAng.outputState == 1 && eYawOme.outputState == 1)
+            {
+                pidSetTarget(&pitAng, tPitAng - tRad(lturnAng));
+                buzzerState = 1;
+            }
+        }
+        else if (yawOmeTar > 0)
+        {
+            buzzerState = 0;
+            if (rYawAng.outputState == 0 && eYawOme.outputState == 1)
+                pidSetTarget(&pitAng, tPitAng - tRad(rReAng));
+            else if (rYawAng.outputState == 0 && eYawOme.outputState == 0)
+                pidSetTarget(&pitAng, tPitAng - tRad(rStAng));
+            else if (rYawAng.outputState == 1 && eYawOme.outputState == 0)
+                pidSetTarget(&pitAng, tPitAng - tRad(rOutAng));
+            else if (rYawAng.outputState == 1 && eYawOme.outputState == 1)
+            {
+                pidSetTarget(&pitAng, tPitAng - tRad(rturnAng));
+                buzzerState = 1;
+            }
         }
     }
-    else if (yawOmeTar > 0)
-    {
-        buzzerState = 0;
-        if (rYawAng.outputState == 0 && eYawOme.outputState == 1)
-            pidSetTarget(&pitAng, tPitAng - tRad(rReAng));
-        else if (rYawAng.outputState == 0 && eYawOme.outputState == 0)
-            pidSetTarget(&pitAng, tPitAng - tRad(rStAng));
-        else if (rYawAng.outputState == 1 && eYawOme.outputState == 0)
-            pidSetTarget(&pitAng, tPitAng - tRad(rOutAng));
-        else if (rYawAng.outputState == 1 && eYawOme.outputState == 1)
-        {
-            pidSetTarget(&pitAng, tPitAng - tRad(rturnAng));
-            buzzerState = 1;
-        }
-    }
+    else pidSetTarget(&pitAng, tPitAng);
 
     pidSetTarget(&rolAng, rolMid + 0.0001f * rolVel.controlValue + Dynamic_control(70.0f, yawOmeTar));
 
@@ -225,9 +235,6 @@ static inline void omeLoop(void)
     pidProcess(&yawOme, imuData.gy);
 }
 // 电机控制函数--------------------------------------------------------------------------------------------------------
-static float sPwm = 0;     // 行进轮pwm输出占空比
-static float rRolPwm = 0;  // 右飞轮pwm输出占空比
-static float lRolPwm = 0;  // 左飞轮pwm输出占空比
 #define rolPwmMax 10000.0f
 static inline void ultimateMotorControl(void)
 {
@@ -264,10 +271,6 @@ static inline void ultimateMotorControl(void)
     else if (rRolPwm < -rolPwmMax) rRolPwm = -rolPwmMax;
     if (lRolPwm > rolPwmMax) lRolPwm = rolPwmMax;
     else if (lRolPwm < -rolPwmMax) lRolPwm = -rolPwmMax;
-
-    // 设置电机转速
-    sMotorSetting(sPwm, 10000);
-    small_driver_set_duty(rRolPwm, -lRolPwm);
 }
 //--------------------------------------------------------------------------------------------------------
 
@@ -280,6 +283,8 @@ uint8_t buzzerState = 0;
 static uint8_t buzzerCount = 0;
 void pit0(void)
 {
+    printf("%f\n", rRolPwm);
+
     timer++;  // 计时标识自增
 
     postureProcess(&imuData);  // 姿态解算
@@ -287,16 +292,20 @@ void pit0(void)
 
     if (state)
     {
-        if (outOfControlSafetyDetection(&imuData)) controllerInit();
-
         if (timer == angPeriodMultiple * velPeriodMultiple) velLoop();
 
         if (timer % angPeriodMultiple == 0) angLoop();
 
         omeLoop();
 
-        ultimateMotorControl();  // 电机控制函数
+        ultimateMotorControl();
+
+        if (outOfControlSafetyDetection(&imuData)) controllerInit();
     }
+
+    // 设置电机转速
+    sMotorSetting(-sPwm, 10000);
+    small_driver_set_duty(rRolPwm, -lRolPwm);
 
     if (timer == angPeriodMultiple * velPeriodMultiple) timer = 0;  // 时间标识位清零
 

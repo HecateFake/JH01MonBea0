@@ -124,8 +124,6 @@ static uint8_t brushlessMotorTest = 0;
 
 void menuInit(void)
 {
-    level0 = 2;
-    level1 = 0;
     menuState = visionShow;
     showType = 0;
     brushedMotorTest = 0;
@@ -365,7 +363,7 @@ void menuInit(void)
     menuType[5].typeOptionStepL[9] = 0.0001f;
 
     // 加载flash中保存的设置
-    loadSettingsFromFlash();
+    if(!testState) loadSettingsFromFlash();
 }
 
 static inline void cameraShow(int8_t* showType)
@@ -389,7 +387,7 @@ static inline void cameraShow(int8_t* showType)
     for (uint8_t i = 0; i < menuType[0].typeOptionCount; i++)
     {
         ips200_show_string(194, 34 * i + 1, menuType[0].typeOptionName[i]);
-        if (i == 4 || i == 5 || i == 6) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
+        if ((i == 4 || i == 5 || i == 6) && !testState) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
         else ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
         ips200_draw_line(190, 17 * (2 * i + 1) + 1 - 1, 318, 17 * (2 * i + 1) + 1 - 1, RGB565_BLUE);
         if (i < menuType[0].typeOptionCount - 1) ips200_draw_line(190, 17 * (2 * i + 2) + 1 - 1, 318, 17 * (2 * i + 2) + 1 - 1, RGB565_GREEN);
@@ -502,15 +500,15 @@ void menuScanner(void)
                 switch (brushedMotorTest)
                 {
                     case 0:
-                        sMotorSetting(2000, 10000);
+                        sPwm = 3000;
                         brushedMotorTest++;
                         break;
                     case 1:
-                        sMotorSetting(-2000, 10000);
+                        sPwm = -3000;
                         brushedMotorTest++;
                         break;
                     case 2:
-                        sMotorSetting(0, 10000);
+                        sPwm = 0;
                         brushedMotorTest = 0;
                         break;
                 }
@@ -527,15 +525,18 @@ void menuScanner(void)
                 switch (brushlessMotorTest)
                 {
                     case 0:
-                        small_driver_set_duty(2000, -2000);
+                        lRolPwm = 2000;
+                        rRolPwm = -2000;
                         brushlessMotorTest++;
                         break;
                     case 1:
-                        small_driver_set_duty(-2000, 2000);
+                        lRolPwm = -2000;
+                        rRolPwm = 2000;
                         brushlessMotorTest++;
                         break;
                     case 2:
-                        small_driver_set_duty(0, 0);
+                        lRolPwm = 0;
+                        rRolPwm = 0;
                         brushlessMotorTest = 0;
                         break;
                 }
@@ -543,6 +544,13 @@ void menuScanner(void)
                 while (key_get_state(KEY_2) == KEY_LONG_PRESS);
             }
             else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) showType++;
+            else if (key_get_state(KEY_3) == KEY_LONG_PRESS)
+            {
+                if (testState) testState = 0;
+                else testState = 1;
+                ips200_clear();
+                while (key_get_state(KEY_3) == KEY_LONG_PRESS);
+            }
             else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
             {
                 saveSettingsToFlash();
@@ -563,8 +571,16 @@ void menuScanner(void)
             }
             if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
             {
-                state = 1;
-                visionState = 1;
+                if (testState)
+                {
+                    state = 1;
+                    visionState = 0;
+                }
+                else
+                {
+                    state = 1;
+                    visionState = 1;
+                }
             }
             break;
         case thresholdEditor:

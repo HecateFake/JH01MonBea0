@@ -47,36 +47,30 @@ int core0_main(void)
     clock_init();  // 获取时钟频率<务必保留>
     debug_init();  // 初始化默认调试串口
     // 此处编写用户代码 例如外设初始化代码等
-    small_driver_uart_init();  // 初始化无刷驱动通讯功能
-    motorInit();               // 初始化有刷驱动引脚
-
-    encoder_quad_init(singleEncoderTimer, singleEncoderCh1, singleEncoderCh2);  // 行进轮编码器初始化
-    magnaticEncoderInit();
-
-    mt9v03x_init();  // 摄像头初始化
-
-    gpio_init(buzzerPin, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 蜂鸣器初始化
-
-    ips200_init(IPS200_TYPE_SPI);
-    key_init(1);
-    menuInit();
-
-    controllerInit();  // 控制器初始化
-
-    system_delay_ms(200);  // 延时消除开机抖动
 
     imu660rx_init();
-    getOffset(&imuData);  // 零漂清除
+    mt9v03x_init();                                                             // 摄像头初始化
+    encoder_quad_init(singleEncoderTimer, singleEncoderCh1, singleEncoderCh2);  // 行进轮编码器初始化
+    magnaticEncoderInit();
+    ips200_init(IPS200_TYPE_SPI);
+    wireless_uart_init();                                // 无线串口初始化
+    small_driver_uart_init();                            // 初始化无刷驱动通讯功能
+    motorInit();                                         // 初始化有刷驱动引脚
+    gpio_init(buzzerPin, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 蜂鸣器初始化
+    key_init(1);
+
+
+    system_delay_ms(200);  // 延时消除开机抖动
+    getOffset(&imuData);   // 零漂清除
+
+    controllerInit();  // 控制器初始化
+    menuInit();
 
     // 定时器中断初始化
     pit_ms_init(CCU60_CH0, 1);
     pit_us_init(CCU60_CH1, 200);
     // pit_ms_init(CCU61_CH0, 1);
     // pit_ms_init(CCU61_CH1, 10);
-
-    // 测试函数--------------------------------------------------------------------------------------------------------
-    // wireless_uart_init();  // 无线串口初始化
-    // 测试函数--------------------------------------------------------------------------------------------------------
 
     // 此处编写用户代码 例如外设初始化代码
     cpu_wait_event_ready();  // 等待所有核心初始化完毕

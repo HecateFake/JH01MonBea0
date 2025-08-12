@@ -15,11 +15,11 @@
 float thresholdLow = 20;    // 二值化低阈值
 float thresholdHigh = 255;  // 二值化高阈值
 
-float visionCenter = 60;
+float visionCenter = 100;
 float visionPolarity = 1.0f;
 
 float visionErrRange = 1.83f;
-float visionPitErr = 55.0f;
+float visionPitErr = 50.0f;
 
 float pMin = 1.0f;
 float pMax = 2.0f;
@@ -69,7 +69,7 @@ void visionProcessMT9V034(void)
 
         visionErr = errGenerate(&beaInf);
 
-        schmittProcess(&sYawErr, visionErr);
+        schmittProcess(&sYawErr, fabs(visionErr));
 
         yawOmeTar = visionState ? (sYawErr.outputState ? visionErr : 0) : 0;
         pitVelTar = visionState ? (visionPitErr) : 0;

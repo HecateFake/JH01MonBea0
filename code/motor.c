@@ -10,7 +10,7 @@
 void motorInit(void)
 {
     gpio_init(singleMotorDir, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 有刷电机方向引脚初始化
-    pwm_init(singleMotorPwm, 17000, 000);                     // 有刷电机pwm引脚初始化
+    pwm_init(singleMotorPwm, 17000, 0);                     // 有刷电机pwm引脚初始化
 }
 
 void motorSetting(float target, float max, gpio_pin_enum dirPin, pwm_channel_enum pwmPin)

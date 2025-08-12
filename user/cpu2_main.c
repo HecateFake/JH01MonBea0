@@ -60,7 +60,18 @@ void core2_main(void)
     {
         // 此处编写需要循环执行的代码
 
-        visionProcessMT9V034();
+        if (!testState) visionProcessMT9V034();
+        else
+        {
+            vofa_send_8ch(pitOme.controlValue,  // l0
+                pitAng.controlValue,            // l1
+                pitVel.controlValue,            // l2
+                pitRpm.filteredValue,           // l3
+                rolOme.controlValue,            // l4
+                rolAng.controlValue,            // l5
+                rolVel.controlValue,            // l6
+                rolRpm.filteredValue);          // l7
+        }
 
         // 此处编写需要循环执行的代码
     }
