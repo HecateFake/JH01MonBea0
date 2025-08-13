@@ -31,7 +31,7 @@ float BlobCount = 0.0f;
 
 static inline float dynamicErrGain(BEAINF* obj)
 {
-    return (pMax - (pMax - pMin) * sqrtf((float) obj->sbea[obj->selectedIndex].beaArea / 600.0f));
+    return (pMax - (pMax - pMin) * powf((float) obj->sbea[obj->selectedIndex].beaArea / 600.0f, 0.3f));
 }
 static inline float errGenerate(BEAINF* obj)
 {
@@ -58,7 +58,7 @@ void visionProcessMT9V034(void)
         toBinaryDoubleThreshold(&binaryReal, &binaryBuffer, (uint8_t) thresholdHigh, (uint8_t) thresholdLow);  // 二值化处理
 
         twoPassEightConnectedAreaProcess(&beaInf);  // 连通区域处理
-        
+
         areaSelected = (float) beaInf.sbea[beaInf.selectedIndex].beaArea;  // 计算选中区域的面积
         BlobCount = (float) beaInf.beaCount;
 
@@ -69,8 +69,8 @@ void visionProcessMT9V034(void)
 
         schmittProcess(&sYawErr, fabs(visionErr));
 
-        if(!startState) yawOmeTar = visionState ? (sYawErr.outputState ? visionErr : 0) : 0;
-        else 
+        if (!startState) yawOmeTar = visionState ? (sYawErr.outputState ? visionErr : 0) : 0;
+        else
         {
             yawOmeTar = 0;
             if (beaInf.beaCount) startState = 0;

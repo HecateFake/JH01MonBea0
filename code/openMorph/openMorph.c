@@ -147,8 +147,8 @@ void twoPassConnectedAreaInit(BEAINF* obj, uint8_t background, CroppedImage8* sr
     obj->yRange[0] = (uint16_t) (topDeadZone * src->height);
     obj->yRange[1] = (uint16_t) ((1.0f - bottomDeadZone) * src->height);
 
-    obj->kMin = (areaMinLow - areaMinHigh) / ((float)obj->yRange[1] - (float)obj->yRange[0]);
-    obj->kMax = (areaMaxLow - areaMaxHigh) / ((float)obj->yRange[1] - (float)obj->yRange[0]);
+    obj->kMin = (areaMinLow - areaMinHigh) / ((float) obj->yRange[1] - (float) obj->yRange[0]);
+    obj->kMax = (areaMaxLow - areaMaxHigh) / ((float) obj->yRange[1] - (float) obj->yRange[0]);
 
     obj->beaCount = 0;
     obj->lastFrameBeaExist = 0;  // 初始化为无有效区域
@@ -247,7 +247,7 @@ void twoPassFourConnectedAreaProcess(BEAINF* obj)
         // 检查面积和位置约束
         if (g_tempBea[i].beaX < obj->xRange[0] || g_tempBea[i].beaX >= obj->xRange[1] ||
             g_tempBea[i].beaY < obj->yRange[0] || g_tempBea[i].beaY >= obj->yRange[1] ||
-            g_tempBea[i].beaArea < (uint16_t)(obj->areaTopMax + obj->kMax * g_tempBea[i].beaY) || g_tempBea[i].beaArea > (uint16_t)(obj->areaTopMin + obj->kMin * g_tempBea[i].beaY))
+            g_tempBea[i].beaArea > (uint16_t) (obj->areaTopMax + obj->kMax * (float) (g_tempBea[i].beaY - obj->yRange[0])) || g_tempBea[i].beaArea < (uint16_t) (obj->areaTopMin + obj->kMin * (float) (g_tempBea[i].beaY - obj->yRange[0])))
             continue;
 
         // 将有效信标添加到结果数组
@@ -325,7 +325,6 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
         {
             g_labMap[i] = ++lab;  // 新标签
             g_labelEquivalence[lab] = lab;
-            // printf("%u:%u\n", lab, g_labelEquivalence[lab]);
         }
         else if (validCount == 1) g_labMap[i] = validLabels[0];
         else
@@ -384,7 +383,6 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
     {
         // 跳过空区域
         if (g_tempBea[i].beaArea == 0 || obj->beaCount >= 100) continue;
-        
 
         // 计算质心
         g_tempBea[i].beaX = (uint32_t) ((float) g_tempBea[i].beaX / (float) g_tempBea[i].beaArea);
@@ -393,7 +391,7 @@ void twoPassEightConnectedAreaProcess(BEAINF* obj)
         // 检查面积和位置约束
         if (g_tempBea[i].beaX < obj->xRange[0] || g_tempBea[i].beaX >= obj->xRange[1] ||
             g_tempBea[i].beaY < obj->yRange[0] || g_tempBea[i].beaY >= obj->yRange[1] ||
-            g_tempBea[i].beaArea < (uint16_t)(obj->areaTopMax + obj->kMax * g_tempBea[i].beaY) || g_tempBea[i].beaArea > (uint16_t)(obj->areaTopMin + obj->kMin * g_tempBea[i].beaY))
+            g_tempBea[i].beaArea > (uint16_t) (obj->areaTopMax + obj->kMax * (float) (g_tempBea[i].beaY - obj->yRange[0])) || g_tempBea[i].beaArea < (uint16_t) (obj->areaTopMin + obj->kMin * (float) (g_tempBea[i].beaY - obj->yRange[0])))
             continue;
 
         // 将有效信标添加到结果数组

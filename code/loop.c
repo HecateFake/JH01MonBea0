@@ -51,7 +51,7 @@ float rolMid = -1.536f;
 
 float imageAreaMinLow = 10.0f;
 float imageAreaMaxLow = 600.0f;
-float imageAreaMinHigh = 1.0f;
+float imageAreaMinHigh = 0.0f;
 float imageAreaMaxHigh = 10.0f;
 
 float upDeadZone = 0.08f;     // 图像处理死区
@@ -292,8 +292,6 @@ uint8_t buzzerState = 0;
 static uint8_t buzzerCount = 0;
 void pit0(void)
 {
-    printf("%f\n", rRolPwm);
-
     timer++;  // 计时标识自增
 
     postureProcess(&imuData);  // 姿态解算

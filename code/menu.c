@@ -465,9 +465,9 @@ static inline void cameraShow(int8_t* showType)
     if (*showType > 1) *showType = 0;
     else if (*showType < 0) *showType = 1;
     ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint16_t)(beaInf.areaTopMax + beaInf.kMax * (float)beaInf.sbea[beaInf.selectedIndex].beaY), 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint16_t) (beaInf.areaTopMax + beaInf.kMax * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
     ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 17, beaInf.sbea[beaInf.selectedIndex].beaArea, 3);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 33, (uint16_t)(beaInf.areaTopMin + beaInf.kMin * (float)beaInf.sbea[beaInf.selectedIndex].beaY), 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 33, (uint16_t) (beaInf.areaTopMin + beaInf.kMin * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
     ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
     ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
     ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
