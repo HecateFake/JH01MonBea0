@@ -20,6 +20,8 @@ extern float thresholdLow;   // 二值化低阈值
 extern float thresholdHigh;  // 二值化高阈值
 
 extern float visionCenter;
+extern float visionCenterLeft;
+extern float visionCenterRight;
 extern float visionPolarity;
 
 extern float visionErrRange;

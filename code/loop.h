@@ -33,17 +33,18 @@ extern float downDeadZone;
 extern float leftDeadZone;
 extern float rightDeadZone;
 
+extern float originVisionState;
+
 extern float lStAng;
 extern float rStAng;
-
 extern float lReAng;
 extern float rReAng;
-
 extern float lturnAng;
 extern float rturnAng;
-
 extern float lOutAng;
 extern float rOutAng;
+
+extern float yawPwmMax;
 
 extern float pitOmeP;
 extern float pitOmeI;
@@ -56,6 +57,15 @@ extern float rolOmeI;
 extern float rolAngP;
 extern float rolVelP;
 extern float rolVelI;
+
+extern float schRealRolHigh;
+extern float schRealRolLow;
+extern float schWantRolHigh;
+extern float schWantRolLow;
+extern float schYawErrHigh;
+extern float schYawErrLow;
+extern float schVidioCenterHigh;
+extern float schVidioCenterLow;
 
 extern PID pitOme;  // 俯仰角速度环
 extern PID pitAng;  // 俯仰角度环
@@ -70,11 +80,10 @@ extern PID yawOme;  // 偏航角速度环
 extern LowPassFilterData rolRpm;  // 飞轮转速
 extern LowPassFilterData pitRpm;  // 行进轮转速
 
-extern SchmittTrigger rPitVel;
-extern SchmittTrigger ePitVel;
 extern SchmittTrigger rYawAng;
 extern SchmittTrigger eYawOme;
 extern SchmittTrigger sYawErr;
+extern SchmittTrigger vCenter;
 
 extern float sPwm;     // 行进轮pwm输出占空比
 extern float rRolPwm;  // 右飞轮pwm输出占空比

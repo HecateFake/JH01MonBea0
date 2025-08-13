@@ -59,12 +59,11 @@ int core0_main(void)
     gpio_init(buzzerPin, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 蜂鸣器初始化
     key_init(1);
 
-
     system_delay_ms(200);  // 延时消除开机抖动
     getOffset(&imuData);   // 零漂清除
 
-    controllerInit();  // 控制器初始化
     menuInit();
+    controllerInit();  // 控制器初始化
 
     // 定时器中断初始化
     pit_ms_init(CCU60_CH0, 1);

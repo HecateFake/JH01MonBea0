@@ -28,47 +28,68 @@ PID yawOme;  // 偏航角速度环
 LowPassFilterData rolRpm;  // 飞轮转速
 LowPassFilterData pitRpm;  // 行进轮转速
 
-SchmittTrigger rPitVel;
-SchmittTrigger ePitVel;
 SchmittTrigger rYawAng;
 SchmittTrigger eYawOme;
 SchmittTrigger sYawErr;
+SchmittTrigger vCenter;
 //--------------------------------------------------------------------------------------------------------
 
 // 控制器初始化函数--------------------------------------------------------------------------------------------------------
 static float rolSafeRange[2] = {-2.0f, -1.0f};  // 定义横滚角安全范围
-
-float dynamicXeroPointGain0 = 0.0021f;  // 右转压弯增益
-float dynamicXeroPointGain1 = 0.0021f;  // 左转压弯增益
+static float pitSafeRange[2] = {-0.5f, 0.5f};   // 定义俯仰角安全范围
 
 #define angPeriodMultiple 3  // 角度环周期倍率
 #define velPeriodMultiple 3  // 角速度环周期倍率
 
-#define yawPwmMax 2000.0f  // 飞轮差速最大值
-#define deadZone 800.0f    // 行进轮死区
+#define deadZone 800.0f  // 行进轮死区
 
-float pitMid = 0.030f;
-float rolMid = -1.550f;
+float dynamicXeroPointGain1 = 0.0023f;  // 左转压弯增益
+float dynamicXeroPointGain0 = 0.0022f;  // 右转压弯增益
+
+float pitMid = 0.040f;
+float rolMid = -1.547f;
 
 float imageAreaMin = 1;
-float imageAreaMax = 300;
+float imageAreaMax = 600;
 
-float upDeadZone = 0.05f;     // 图像处理死区
-float downDeadZone = 0.30f;   // 图像处理死区
-float leftDeadZone = 0.00f;   // 图像处理死区
+float upDeadZone = 0.07f;     // 图像处理死区
+float downDeadZone = 0.29f;   // 图像处理死区
+float leftDeadZone = 0.08f;   // 图像处理死区
 float rightDeadZone = 0.00f;  // 图像处理死区
 
+float lStAng = 12.0f;
+float rStAng = 11.0f;
+float lReAng = 11.5f;
+float rReAng = 11.0f;
+float lturnAng = 11.5f;
+float rturnAng = 11.0f;
+float lOutAng = 18.5f;
+float rOutAng = 19.0f;
+
+float yawPwmMax = 4000.0f;
+
 float pitOmeP = -800.0f;
-float pitOmeI = -60.0f;
+float pitOmeI = -57.0f;
 float pitAngP = 2.5f;
 float pitVelP = -0.0028f;
 float pitVelI = -0.00000f;
 
 float rolOmeP = 1100.0f;
 float rolOmeI = 120.0f;
-float rolAngP = 3.1f;
+float rolAngP = 3.0f;
 float rolVelP = -0.060f;
 float rolVelI = -0.00000f;
+
+float schRealRolHigh = 8.0f;
+float schRealRolLow = 6.0f;
+float schWantRolHigh = 1.0f;
+float schWantRolLow = 0.8f;
+float schYawErrHigh = 0.5f;
+float schYawErrLow = 0.3f;
+float schVidioCenterHigh = 105.0f;
+float schVidioCenterLow = 65.0f;
+
+float originVisionState = 1.0f;
 
 uint8_t testState = 0;
 
@@ -100,11 +121,10 @@ void controllerInit(void)
     pidInit(1.0f, &rolAng, rolMid, rolAngP, 0.0f, 0.0f);       // 横滚角度环初始化
     pidInit(1000.0f, &rolVel, 0.0f, rolVelP, rolVelI, -0.0f);  // 横滚速度环初始化
 
-    schmittInit(&rPitVel, 90, 70, 0);
-    schmittInit(&ePitVel, 90, 70, 1);
-    schmittInit(&rYawAng, 8, 6, 0);
-    schmittInit(&eYawOme, 1, 0.8, 0);
-    schmittInit(&sYawErr, 0.3, 0.5, 1);
+    schmittInit(&rYawAng, schRealRolHigh, schRealRolLow, 0);
+    schmittInit(&eYawOme, schWantRolHigh, schWantRolLow, 0);
+    schmittInit(&sYawErr, schYawErrHigh, schYawErrLow, 1);
+    schmittInit(&vCenter, schVidioCenterHigh, schVidioCenterLow, (uint8_t) originVisionState);
 
     pidInit(1, &yawOme, 0.0f, -4000.0f, -0.0f, -0.0f);  // 偏航角速度环初始化
 
@@ -123,7 +143,7 @@ float yawOmeTar = 0;  // 偏航速度传递变量
 static inline int outOfControlSafetyDetection(postureData *obj)
 {
     if (obj->pitch < rolSafeRange[0] || obj->pitch > rolSafeRange[1]) return TRUE;
-    else if (obj->roll < -0.5 || obj->roll > 0.5) return TRUE;
+    else if (obj->roll < pitSafeRange[0] || obj->roll > pitSafeRange[1]) return TRUE;
     else return FALSE;
 }
 //--------------------------------------------------------------------------------------------------------
@@ -156,25 +176,11 @@ static inline void velLoop(void)
 }
 //--------------------------------------------------------------------------------------------------------
 // pid角度环 3毫秒一次调用
-float lStAng = 11.0f;
-float rStAng = 11.0f;
-
-float lReAng = 11.0f;
-float rReAng = 11.0f;
-
-float lturnAng = 11.0f;
-float rturnAng = 11.0f;
-
-float lOutAng = 20.0f;
-float rOutAng = 20.0f;
-
 static inline void angLoop(void)
 {
     // 传递外环控制值
     float tPitAng = pitMid + pitVel.controlValue;
 
-    schmittProcess(&rPitVel, pitRpm.filteredValue);
-    schmittProcess(&ePitVel, pitVelTar);
     schmittProcess(&rYawAng, fabs(tDeg(imuData.pitch - rolMid)));
     schmittProcess(&eYawOme, fabs(yawOmeTar));
 
@@ -226,8 +232,7 @@ static inline void omeLoop(void)
     // 传递外环控制值
     pidSetTarget(&pitOme, pitAng.controlValue);
     pidSetTarget(&rolOme, rolAng.controlValue);
-
-    pidSetTarget(&yawOme, yawOmeTar);  // 传递期望角度
+    pidSetTarget(&yawOme, yawOmeTar);
 
     // 计算角速度环pid
     pidProcess(&pitOme, imuData.gz);
@@ -346,25 +351,5 @@ void pit2(void)
 // 定时器中断函数3
 void pit3(void)
 {
-    key_scanner();  // 按键扫描函数
-
-    if (buzzerState == 0)
-    {
-        gpio_low(buzzerPin);
-        buzzerCount = 0;
-    }
-    else
-    {
-        buzzerCount++;
-        if (buzzerCount == 5 || buzzerCount == 6)
-        {
-            if (gpio_get_level(buzzerPin) == GPIO_LOW) gpio_high(buzzerPin);
-            else
-            {
-                gpio_low(buzzerPin);
-                buzzerCount = 0;
-            }
-        }
-    }
 }
 //--------------------------------------------------------------------------------------------------------

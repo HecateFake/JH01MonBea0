@@ -12,17 +12,19 @@
 #include "loop.h"
 #include "openMorph.h"
 
-float thresholdLow = 20;    // 二值化低阈值
+float thresholdLow = 30;    // 二值化低阈值
 float thresholdHigh = 255;  // 二值化高阈值
 
-float visionCenter = 100;
+float visionCenter = 0.0f;
+float visionCenterLeft = 60.0f;
+float visionCenterRight = 107.0f;
 float visionPolarity = 1.0f;
 
-float visionErrRange = 1.83f;
+float visionErrRange = 1.89f;
 float visionPitErr = 50.0f;
 
-float pMin = 1.0f;
-float pMax = 2.0f;
+float pMin = 0.9f;
+float pMax = 2.7f;
 
 float areaSelected = 0.0f;
 
@@ -32,7 +34,7 @@ static inline float dynamicErrGain(BEAINF* obj)
 }
 static inline float errGenerate(BEAINF* obj)
 {
-    if (obj->beaCount) return fRang(((float)obj->sbea[obj->selectedIndex].beaX - visionCenter) * dynamicErrGain(obj) * visionErrRange * 0.0106383f, visionErrRange);
+    if (obj->beaCount) return fRang(((float) obj->sbea[obj->selectedIndex].beaX - visionCenter) * dynamicErrGain(obj) * visionErrRange * 0.0106383f, visionErrRange);
     else return (obj->lastFrameSelectedBeaXY[0] > 80) ? (visionPolarity ? visionErrRange : -visionErrRange) : (visionPolarity ? -visionErrRange : visionErrRange);
     return 0.0f;
 }
@@ -66,6 +68,9 @@ void visionProcessMT9V034(void)
         twoPassEightConnectedAreaProcess(&beaInf);  // 连通区域处理
 
         areaSelected = (float) beaInf.sbea[beaInf.selectedIndex].beaArea;  // 计算选中区域的面积
+
+        if (beaInf.beaCount) schmittProcess(&vCenter, (float) beaInf.sbea[beaInf.selectedIndex].beaX);
+        visionCenter = vCenter.outputState ? visionCenterRight : visionCenterLeft;
 
         visionErr = errGenerate(&beaInf);
 
