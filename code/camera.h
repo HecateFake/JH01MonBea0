@@ -31,6 +31,7 @@ extern float pMin;
 extern float pMax;
 
 extern float areaSelected;
+extern float BlobCount;
 
 extern uint8_t binRel[MT9V03X_W * MT9V03X_H];
 extern uint8_t binBuf[MT9V03X_W * MT9V03X_H];

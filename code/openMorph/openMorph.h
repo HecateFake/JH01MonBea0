@@ -281,9 +281,13 @@ typedef struct
     CroppedImage8* data;  ///< 源二值图像数据指针（输入）
     CroppedImage8* show;  ///< 显示用图像指针（输出，用于标记检测结果）
 
-    uint16_t areaRange[2];  ///< 面积过滤范围 [最小面积, 最大面积]
-    uint16_t xRange[2];     ///< X坐标有效范围 [最小X, 最大X]（基于死区计算）
-    uint16_t yRange[2];     ///< Y坐标有效范围 [最小Y, 最大Y]（基于死区计算）
+    float areaTopMin;
+    float areaTopMax;
+    float kMin;
+    float kMax;
+
+    uint16_t xRange[2];         ///< X坐标有效范围 [最小X, 最大X]（基于死区计算）
+    uint16_t yRange[2];         ///< Y坐标有效范围 [最小Y, 最大Y]（基于死区计算）
 
     uint16_t beaCount;                   ///< 检测到的有效区域数量（0-100）
     uint8_t lastFrameBeaExist;           ///< 上一帧是否有有效区域（0=无, 1=有）
@@ -327,7 +331,7 @@ typedef struct
  *   // 设置面积范围10-1000，左右各10%死区，上下各5%死区
  *   twoPassConnectedAreaInit(&detector, 0, &srcImg, &showImg, 10, 1000, 0.1f, 0.1f, 0.05f, 0.05f);
  */
-void twoPassConnectedAreaInit(BEAINF* obj, uint8_t background, CroppedImage8* src, CroppedImage8* sho, uint16_t areaMin, uint16_t areaMax, float leftDeadZone, float rightDeadZone, float topDeadZone, float bottomDeadZone);
+void twoPassConnectedAreaInit(BEAINF* obj, uint8_t background, CroppedImage8* src, CroppedImage8* sho, float areaMinLow, float areaMaxLow, float areaMinHigh, float areaMaxHigh, float leftDeadZone, float rightDeadZone, float topDeadZone, float bottomDeadZone);
 
 /**
  * @brief 执行两次扫描四连通区域检测

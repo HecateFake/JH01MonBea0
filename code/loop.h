@@ -18,6 +18,7 @@
 extern uint8_t state;        // 直立使能标识位
 extern uint8_t visionState;  // 视觉处理使能标识位
 extern uint8_t testState;    // 测试状态标识位
+extern uint8_t startState;   // 发车状态标识位
 
 extern float dynamicXeroPointGain0;  // 右转压弯增益
 extern float dynamicXeroPointGain1;  // 左转压弯增益
@@ -25,8 +26,10 @@ extern float dynamicXeroPointGain1;  // 左转压弯增益
 extern float pitMid;
 extern float rolMid;
 
-extern float imageAreaMin;
-extern float imageAreaMax;
+extern float imageAreaMinLow;
+extern float imageAreaMaxLow;
+extern float imageAreaMinHigh;
+extern float imageAreaMaxHigh;
 
 extern float upDeadZone;
 extern float downDeadZone;
@@ -94,7 +97,7 @@ extern float lRolPwm;  // 左飞轮pwm输出占空比
 extern float pitVelTar;  // 控制期望行进速度接口
 extern float yawOmeTar;  // 控制期望角速度接口
 
-extern uint8_t buzzerState;  // 蜂鸣器开关接口（0为关，1为开）
+extern uint8_t buzzerState;  // 蜂鸣器开关接口
 
 #define tRad(x) (x) * 0.01745329252f
 #define tDeg(x) (x) * 57.29577951f

@@ -46,32 +46,34 @@ static float pitSafeRange[2] = {-0.5f, 0.5f};   // 定义俯仰角安全范围
 float dynamicXeroPointGain1 = 0.0023f;  // 左转压弯增益
 float dynamicXeroPointGain0 = 0.0022f;  // 右转压弯增益
 
-float pitMid = 0.040f;
-float rolMid = -1.547f;
+float pitMid = 0.071f;
+float rolMid = -1.536f;
 
-float imageAreaMin = 1;
-float imageAreaMax = 600;
+float imageAreaMinLow = 10.0f;
+float imageAreaMaxLow = 600.0f;
+float imageAreaMinHigh = 1.0f;
+float imageAreaMaxHigh = 10.0f;
 
-float upDeadZone = 0.07f;     // 图像处理死区
+float upDeadZone = 0.08f;     // 图像处理死区
 float downDeadZone = 0.29f;   // 图像处理死区
 float leftDeadZone = 0.08f;   // 图像处理死区
 float rightDeadZone = 0.00f;  // 图像处理死区
 
-float lStAng = 12.0f;
+float lStAng = 11.0f;
 float rStAng = 11.0f;
-float lReAng = 11.5f;
+float lReAng = 10.5f;
 float rReAng = 11.0f;
-float lturnAng = 11.5f;
+float lturnAng = 10.5f;
 float rturnAng = 11.0f;
-float lOutAng = 18.5f;
-float rOutAng = 19.0f;
+float lOutAng = 17.5f;
+float rOutAng = 17.5f;
 
-float yawPwmMax = 4000.0f;
+float yawPwmMax = 3000.0f;
 
 float pitOmeP = -800.0f;
 float pitOmeI = -57.0f;
 float pitAngP = 2.5f;
-float pitVelP = -0.0028f;
+float pitVelP = -0.0026f;
 float pitVelI = -0.00000f;
 
 float rolOmeP = 1100.0f;
@@ -84,20 +86,22 @@ float schRealRolHigh = 8.0f;
 float schRealRolLow = 6.0f;
 float schWantRolHigh = 1.0f;
 float schWantRolLow = 0.8f;
-float schYawErrHigh = 0.5f;
-float schYawErrLow = 0.3f;
+float schYawErrHigh = 0.56f;
+float schYawErrLow = 0.36f;
 float schVidioCenterHigh = 105.0f;
 float schVidioCenterLow = 65.0f;
 
 float originVisionState = 1.0f;
 
 uint8_t testState = 0;
+uint8_t startState = 1;
 
 float sPwm = 0;     // 行进轮pwm输出占空比
 float rRolPwm = 0;  // 右飞轮pwm输出占空比
 float lRolPwm = 0;  // 左飞轮pwm输出占空比
 void controllerInit(void)
 {
+    startState = 1;
     state = 0;
     visionState = 0;   // 视觉状态初始化为0
     buzzerState = 0;   // 蜂鸣器关闭
@@ -106,7 +110,7 @@ void controllerInit(void)
 
     sEncCleCon();  // 清除行进轮编码器计数
 
-    twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, (uint16_t) imageAreaMin, (uint16_t) imageAreaMax, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
+    twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, imageAreaMinLow, imageAreaMaxLow, imageAreaMinHigh, imageAreaMaxHigh, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
 
     magnaticEncoderPhaseLockedLoopInit(150.0f, 0.25f, 0.008f);  // 磁编码器锁相环初始化
 

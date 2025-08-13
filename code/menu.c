@@ -37,43 +37,45 @@ static inline void saveSettingsToFlash(void)
     flash_union_buffer[7].float_type = downDeadZone;            // menuType[2][5]
     flash_union_buffer[8].float_type = leftDeadZone;            // menuType[2][6]
     flash_union_buffer[9].float_type = rightDeadZone;           // menuType[2][7]
-    flash_union_buffer[10].float_type = imageAreaMin;           // menuType[2][8]
-    flash_union_buffer[11].float_type = imageAreaMax;           // menuType[2][9]
-    flash_union_buffer[12].float_type = visionErrRange;         // menuType[3][0]
-    flash_union_buffer[13].float_type = visionPitErr;           // menuType[3][1]
-    flash_union_buffer[14].float_type = pMin;                   // menuType[3][2]
-    flash_union_buffer[15].float_type = pMax;                   // menuType[3][3]
-    flash_union_buffer[16].float_type = pitMid;                 // menuType[3][4]
-    flash_union_buffer[17].float_type = rolMid;                 // menuType[3][5]
-    flash_union_buffer[18].float_type = dynamicXeroPointGain1;  // menuType[4][0]
-    flash_union_buffer[19].float_type = dynamicXeroPointGain0;  // menuType[4][1]
-    flash_union_buffer[20].float_type = lStAng;                 // menuType[4][2]
-    flash_union_buffer[21].float_type = rStAng;                 // menuType[4][3]
-    flash_union_buffer[22].float_type = lReAng;                 // menuType[4][4]
-    flash_union_buffer[23].float_type = rReAng;                 // menuType[4][5]
-    flash_union_buffer[24].float_type = lturnAng;               // menuType[4][6]
-    flash_union_buffer[25].float_type = rturnAng;               // menuType[4][7]
-    flash_union_buffer[26].float_type = lOutAng;                // menuType[4][8]
-    flash_union_buffer[27].float_type = rOutAng;                // menuType[4][9]
-    flash_union_buffer[28].float_type = pitOmeP;                // menuType[5][0]
-    flash_union_buffer[29].float_type = pitOmeI;                // menuType[5][1]
-    flash_union_buffer[30].float_type = pitAngP;                // menuType[5][2]
-    flash_union_buffer[31].float_type = pitVelP;                // menuType[5][3]
-    flash_union_buffer[32].float_type = pitVelI;                // menuType[5][4]
-    flash_union_buffer[33].float_type = rolOmeP;                // menuType[5][5]
-    flash_union_buffer[34].float_type = rolOmeI;                // menuType[5][6]
-    flash_union_buffer[35].float_type = rolAngP;                // menuType[5][7]
-    flash_union_buffer[36].float_type = rolVelP;                // menuType[5][8]
-    flash_union_buffer[37].float_type = rolVelI;                // menuType[5][9]
-    flash_union_buffer[38].float_type = yawPwmMax;              // menuType[5][10]
-    flash_union_buffer[39].float_type = schRealRolHigh;         // menuType[6][0]
-    flash_union_buffer[40].float_type = schRealRolLow;          // menuType[6][1]
-    flash_union_buffer[41].float_type = schWantRolHigh;         // menuType[6][2]
-    flash_union_buffer[42].float_type = schWantRolLow;          // menuType[6][3]
-    flash_union_buffer[43].float_type = schYawErrHigh;          // menuType[6][4]
-    flash_union_buffer[44].float_type = schYawErrLow;           // menuType[6][5]
-    flash_union_buffer[45].float_type = schVidioCenterHigh;     // menuType[6][6]
-    flash_union_buffer[46].float_type = schVidioCenterLow;      // menuType[6][7]
+    flash_union_buffer[10].float_type = imageAreaMinLow;        // menuType[2][8]
+    flash_union_buffer[11].float_type = imageAreaMaxLow;        // menuType[2][9]
+    flash_union_buffer[12].float_type = imageAreaMinHigh;       // menuType[2][10]
+    flash_union_buffer[13].float_type = imageAreaMaxHigh;       // menuType[2][11]
+    flash_union_buffer[14].float_type = visionErrRange;         // menuType[3][0]
+    flash_union_buffer[15].float_type = visionPitErr;           // menuType[3][1]
+    flash_union_buffer[16].float_type = pMin;                   // menuType[3][2]
+    flash_union_buffer[17].float_type = pMax;                   // menuType[3][3]
+    flash_union_buffer[18].float_type = pitMid;                 // menuType[3][4]
+    flash_union_buffer[19].float_type = rolMid;                 // menuType[3][5]
+    flash_union_buffer[20].float_type = dynamicXeroPointGain1;  // menuType[4][0]
+    flash_union_buffer[21].float_type = dynamicXeroPointGain0;  // menuType[4][1]
+    flash_union_buffer[22].float_type = lStAng;                 // menuType[4][2]
+    flash_union_buffer[23].float_type = rStAng;                 // menuType[4][3]
+    flash_union_buffer[24].float_type = lReAng;                 // menuType[4][4]
+    flash_union_buffer[25].float_type = rReAng;                 // menuType[4][5]
+    flash_union_buffer[26].float_type = lturnAng;               // menuType[4][6]
+    flash_union_buffer[27].float_type = rturnAng;               // menuType[4][7]
+    flash_union_buffer[28].float_type = lOutAng;                // menuType[4][8]
+    flash_union_buffer[29].float_type = rOutAng;                // menuType[4][9]
+    flash_union_buffer[30].float_type = pitOmeP;                // menuType[5][0]
+    flash_union_buffer[31].float_type = pitOmeI;                // menuType[5][1]
+    flash_union_buffer[32].float_type = pitAngP;                // menuType[5][2]
+    flash_union_buffer[33].float_type = pitVelP;                // menuType[5][3]
+    flash_union_buffer[34].float_type = pitVelI;                // menuType[5][4]
+    flash_union_buffer[35].float_type = rolOmeP;                // menuType[5][5]
+    flash_union_buffer[36].float_type = rolOmeI;                // menuType[5][6]
+    flash_union_buffer[37].float_type = rolAngP;                // menuType[5][7]
+    flash_union_buffer[38].float_type = rolVelP;                // menuType[5][8]
+    flash_union_buffer[39].float_type = rolVelI;                // menuType[5][9]
+    flash_union_buffer[40].float_type = yawPwmMax;              // menuType[5][10]
+    flash_union_buffer[41].float_type = schRealRolHigh;         // menuType[6][0]
+    flash_union_buffer[42].float_type = schRealRolLow;          // menuType[6][1]
+    flash_union_buffer[43].float_type = schWantRolHigh;         // menuType[6][2]
+    flash_union_buffer[44].float_type = schWantRolLow;          // menuType[6][3]
+    flash_union_buffer[45].float_type = schYawErrHigh;          // menuType[6][4]
+    flash_union_buffer[46].float_type = schYawErrLow;           // menuType[6][5]
+    flash_union_buffer[47].float_type = schVidioCenterHigh;     // menuType[6][6]
+    flash_union_buffer[48].float_type = schVidioCenterLow;      // menuType[6][7]
 
     if (flash_check(0, 0)) flash_erase_page(0, 0);
     flash_write_page_from_buffer(0, 0);
@@ -96,43 +98,45 @@ static inline void loadSettingsFromFlash(void)
         downDeadZone = flash_union_buffer[7].float_type;
         leftDeadZone = flash_union_buffer[8].float_type;
         rightDeadZone = flash_union_buffer[9].float_type;
-        imageAreaMin = flash_union_buffer[10].float_type;
-        imageAreaMax = flash_union_buffer[11].float_type;
-        visionErrRange = flash_union_buffer[12].float_type;
-        visionPitErr = flash_union_buffer[13].float_type;
-        pMin = flash_union_buffer[14].float_type;
-        pMax = flash_union_buffer[15].float_type;
-        pitMid = flash_union_buffer[16].float_type;
-        rolMid = flash_union_buffer[17].float_type;
-        dynamicXeroPointGain1 = flash_union_buffer[18].float_type;
-        dynamicXeroPointGain0 = flash_union_buffer[19].float_type;
-        lStAng = flash_union_buffer[20].float_type;
-        rStAng = flash_union_buffer[21].float_type;
-        lReAng = flash_union_buffer[22].float_type;
-        rReAng = flash_union_buffer[23].float_type;
-        lturnAng = flash_union_buffer[24].float_type;
-        rturnAng = flash_union_buffer[25].float_type;
-        lOutAng = flash_union_buffer[26].float_type;
-        rOutAng = flash_union_buffer[27].float_type;
-        pitOmeP = flash_union_buffer[28].float_type;
-        pitOmeI = flash_union_buffer[29].float_type;
-        pitAngP = flash_union_buffer[30].float_type;
-        pitVelP = flash_union_buffer[31].float_type;
-        pitVelI = flash_union_buffer[32].float_type;
-        rolOmeP = flash_union_buffer[33].float_type;
-        rolOmeI = flash_union_buffer[34].float_type;
-        rolAngP = flash_union_buffer[35].float_type;
-        rolVelP = flash_union_buffer[36].float_type;
-        rolVelI = flash_union_buffer[37].float_type;
-        yawPwmMax = flash_union_buffer[38].float_type;
-        schRealRolHigh = flash_union_buffer[39].float_type;
-        schRealRolLow = flash_union_buffer[40].float_type;
-        schWantRolHigh = flash_union_buffer[41].float_type;
-        schWantRolLow = flash_union_buffer[42].float_type;
-        schYawErrHigh = flash_union_buffer[43].float_type;
-        schYawErrLow = flash_union_buffer[44].float_type;
-        schVidioCenterHigh = flash_union_buffer[45].float_type;
-        schVidioCenterLow = flash_union_buffer[46].float_type;
+        imageAreaMinLow = flash_union_buffer[10].float_type;        // menuType[2][8]
+        imageAreaMaxLow = flash_union_buffer[11].float_type;        // menuType[2][9]
+        imageAreaMinHigh = flash_union_buffer[12].float_type;       // menuType[2][10]
+        imageAreaMaxHigh = flash_union_buffer[13].float_type;       // menuType[2][11]
+        visionErrRange = flash_union_buffer[14].float_type;         // menuType[3][0]
+        visionPitErr = flash_union_buffer[15].float_type;           // menuType[3][1]
+        pMin = flash_union_buffer[16].float_type;                   // menuType[3][2]
+        pMax = flash_union_buffer[17].float_type;                   // menuType[3][3]
+        pitMid = flash_union_buffer[18].float_type;                 // menuType[3][4]
+        rolMid = flash_union_buffer[19].float_type;                 // menuType[3][5]
+        dynamicXeroPointGain1 = flash_union_buffer[20].float_type;  // menuType[4][0]
+        dynamicXeroPointGain0 = flash_union_buffer[21].float_type;  // menuType[4][1]
+        lStAng = flash_union_buffer[22].float_type;                 // menuType[4][2]
+        rStAng = flash_union_buffer[23].float_type;                 // menuType[4][3]
+        lReAng = flash_union_buffer[24].float_type;                 // menuType[4][4]
+        rReAng = flash_union_buffer[25].float_type;                 // menuType[4][5]
+        lturnAng = flash_union_buffer[26].float_type;               // menuType[4][6]
+        rturnAng = flash_union_buffer[27].float_type;               // menuType[4][7]
+        lOutAng = flash_union_buffer[28].float_type;                // menuType[4][8]
+        rOutAng = flash_union_buffer[29].float_type;                // menuType[4][9]
+        pitOmeP = flash_union_buffer[30].float_type;                // menuType[5][0]
+        pitOmeI = flash_union_buffer[31].float_type;                // menuType[5][1]
+        pitAngP = flash_union_buffer[32].float_type;                // menuType[5][2]
+        pitVelP = flash_union_buffer[33].float_type;                // menuType[5][3]
+        pitVelI = flash_union_buffer[34].float_type;                // menuType[5][4]
+        rolOmeP = flash_union_buffer[35].float_type;                // menuType[5][5]
+        rolOmeI = flash_union_buffer[36].float_type;                // menuType[5][6]
+        rolAngP = flash_union_buffer[37].float_type;                // menuType[5][7]
+        rolVelP = flash_union_buffer[38].float_type;                // menuType[5][8]
+        rolVelI = flash_union_buffer[39].float_type;                // menuType[5][9]
+        yawPwmMax = flash_union_buffer[40].float_type;              // menuType[5][10]
+        schRealRolHigh = flash_union_buffer[41].float_type;         // menuType[6][0]
+        schRealRolLow = flash_union_buffer[42].float_type;          // menuType[6][1]
+        schWantRolHigh = flash_union_buffer[43].float_type;         // menuType[6][2]
+        schWantRolLow = flash_union_buffer[44].float_type;          // menuType[6][3]
+        schYawErrHigh = flash_union_buffer[45].float_type;          // menuType[6][4]
+        schYawErrLow = flash_union_buffer[46].float_type;           // menuType[6][5]
+        schVidioCenterHigh = flash_union_buffer[47].float_type;     // menuType[6][6]
+        schVidioCenterLow = flash_union_buffer[48].float_type;      // menuType[6][7]
     }
 }
 
@@ -159,8 +163,8 @@ void menuInit(void)
     menuType[0].typeOptionStepS[0] = 0.0f;
     menuType[0].typeOptionStepL[0] = 0.0f;
 
-    menuType[0].typeOptionName[1] = "Blob Area";
-    menuType[0].typeOption[1] = &areaSelected;
+    menuType[0].typeOptionName[1] = "Blob Count";
+    menuType[0].typeOption[1] = &BlobCount;
     menuType[0].typeOptionStepS[1] = 0.0f;
     menuType[0].typeOptionStepL[1] = 0.0f;
 
@@ -203,7 +207,7 @@ void menuInit(void)
     menuType[1].typeOptionStepL[1] = 10.0f;
 
     menuType[2].typeName = "Vision Settings";
-    menuType[2].typeOptionCount = 10;
+    menuType[2].typeOptionCount = 12;
 
     menuType[2].typeOptionName[0] = "Left Image Center";
     menuType[2].typeOption[0] = &visionCenterLeft;
@@ -245,15 +249,25 @@ void menuInit(void)
     menuType[2].typeOptionStepS[7] = 0.01f;
     menuType[2].typeOptionStepL[7] = 0.1f;
 
-    menuType[2].typeOptionName[8] = "Area Min";
-    menuType[2].typeOption[8] = &imageAreaMin;
+    menuType[2].typeOptionName[8] = "Area Min Low";
+    menuType[2].typeOption[8] = &imageAreaMinLow;
     menuType[2].typeOptionStepS[8] = 1.0f;
     menuType[2].typeOptionStepL[8] = 10.0f;
 
-    menuType[2].typeOptionName[9] = "Area Max";
-    menuType[2].typeOption[9] = &imageAreaMax;
+    menuType[2].typeOptionName[9] = "Area Max Low";
+    menuType[2].typeOption[9] = &imageAreaMaxLow;
     menuType[2].typeOptionStepS[9] = 10.0f;
     menuType[2].typeOptionStepL[9] = 100.0f;
+
+    menuType[2].typeOptionName[10] = "Area Min High";
+    menuType[2].typeOption[10] = &imageAreaMinHigh;
+    menuType[2].typeOptionStepS[10] = 1.0f;
+    menuType[2].typeOptionStepL[10] = 10.0f;
+
+    menuType[2].typeOptionName[11] = "Area Max High";
+    menuType[2].typeOption[11] = &imageAreaMaxHigh;
+    menuType[2].typeOptionStepS[11] = 1.0f;
+    menuType[2].typeOptionStepL[11] = 10.0f;
 
     menuType[3].typeName = "Action Settings";
     menuType[3].typeOptionCount = 6;
@@ -451,7 +465,9 @@ static inline void cameraShow(int8_t* showType)
     if (*showType > 1) *showType = 0;
     else if (*showType < 0) *showType = 1;
     ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint32_t) beaInf.beaCount, 2);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint16_t)(beaInf.areaTopMax + beaInf.kMax * (float)beaInf.sbea[beaInf.selectedIndex].beaY), 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 17, beaInf.sbea[beaInf.selectedIndex].beaArea, 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 33, (uint16_t)(beaInf.areaTopMin + beaInf.kMin * (float)beaInf.sbea[beaInf.selectedIndex].beaY), 3);
     ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
     ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
     ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
