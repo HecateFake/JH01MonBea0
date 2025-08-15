@@ -76,6 +76,8 @@ static inline void saveSettingsToFlash(void)
     flash_union_buffer[46].float_type = schYawErrLow;           // menuType[6][5]
     flash_union_buffer[47].float_type = schVidioCenterHigh;     // menuType[6][6]
     flash_union_buffer[48].float_type = schVidioCenterLow;      // menuType[6][7]
+    flash_union_buffer[49].float_type = auto_exp;               // menuType[2][12]
+    flash_union_buffer[50].float_type = exp_time;               // menuType[2][13]
 
     if (flash_check(0, 0)) flash_erase_page(0, 0);
     flash_write_page_from_buffer(0, 0);
@@ -137,6 +139,8 @@ static inline void loadSettingsFromFlash(void)
         schYawErrLow = flash_union_buffer[46].float_type;           // menuType[6][5]
         schVidioCenterHigh = flash_union_buffer[47].float_type;     // menuType[6][6]
         schVidioCenterLow = flash_union_buffer[48].float_type;      // menuType[6][7]
+        auto_exp = flash_union_buffer[49].float_type;               // menuType[2][12]
+        exp_time = flash_union_buffer[50].float_type;               // menuType[2][13]
     }
 }
 
@@ -194,7 +198,7 @@ void menuInit(void)
     menuType[0].typeOptionStepL[6] = 0.0f;
 
     menuType[1].typeName = "Threshold Edit";
-    menuType[1].typeOptionCount = 2;
+    menuType[1].typeOptionCount = 4;
 
     menuType[1].typeOptionName[0] = "Low Threshold";
     menuType[1].typeOption[0] = &thresholdLow;
@@ -205,6 +209,16 @@ void menuInit(void)
     menuType[1].typeOption[1] = &thresholdHigh;
     menuType[1].typeOptionStepS[1] = 1.0f;
     menuType[1].typeOptionStepL[1] = 10.0f;
+
+    menuType[1].typeOptionName[2] = "Auto Exposure";
+    menuType[1].typeOption[2] = &auto_exp;
+    menuType[1].typeOptionStepS[2] = 1.0f;
+    menuType[1].typeOptionStepL[2] = 10.0f;
+
+    menuType[1].typeOptionName[3] = "Exposure Time";
+    menuType[1].typeOption[3] = &exp_time;
+    menuType[1].typeOptionStepS[3] = 10.0f;
+    menuType[1].typeOptionStepL[3] = 100.0f;
 
     menuType[2].typeName = "Vision Settings";
     menuType[2].typeOptionCount = 12;
@@ -496,16 +510,10 @@ static inline void thresholdEdit(int8_t* showType, int8_t* editEnum)
     else if (*showType < 0) *showType = 1;
     if (*editEnum >= menuType[1].typeOptionCount) *editEnum = 0;
     else if (*editEnum < 0) *editEnum = menuType[1].typeOptionCount - 1;
-    ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint32_t) beaInf.beaCount, 2);
-    ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
+    ips200_show_gray_image(1, 1, binRel, 188, 120, 188, 118, 0);
+    ips200_show_gray_image(1, 120, binBuf, 188, 120, 188, 119, 0);
+    ips200_show_gray_image(190, 154, binSho, 188, 120, 129, 85, 0);
     ips200_show_string(194, 1, menuType[1].typeName);
-    ips200_show_string(194, 54, menuType[1].typeOptionName[0]);
-    ips200_show_float(194, 91, *menuType[1].typeOption[0], 4, 5);
-    ips200_show_string(194, 165, menuType[1].typeOptionName[1]);
-    ips200_show_float(194, 202, *menuType[1].typeOption[1], 4, 5);
-    ips200_show_string(190, 18, !*editEnum ? "##" : "  ");
-    ips200_show_string(190, 129, *editEnum ? "##" : "  ");
     ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
     ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
     ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
@@ -513,11 +521,15 @@ static inline void thresholdEdit(int8_t* showType, int8_t* editEnum)
     ips200_draw_line(0, 119, 189, 119, RGB565_GREEN);
     ips200_draw_line(189, 0, 189, 239, RGB565_GREEN);
     ips200_draw_line(190, 17, 318, 17, RGB565_GREEN);
-    ips200_draw_line(190, 128, 318, 128, RGB565_GREEN);
-    ips200_draw_line(190, 34, 206, 34, RGB565_GREEN);
-    ips200_draw_line(206, 18, 206, 34, RGB565_GREEN);
-    ips200_draw_line(190, 145, 206, 145, RGB565_GREEN);
-    ips200_draw_line(206, 129, 206, 145, RGB565_GREEN);
+    for (uint8_t i = 0; i < menuType[1].typeOptionCount; i++)
+    {
+        ips200_show_string(194, 34 * i + 18, menuType[1].typeOptionName[i]);
+        ips200_show_string(194, 17 * (2 * i + 1) + 18, (i == *editEnum) ? ">>" : "  ");
+        ips200_show_float(211, 17 * (2 * i + 1) + 18, *menuType[1].typeOption[i], 4, 5);
+        ips200_draw_line(210, 17 * (2 * i + 1) + 18 - 1, 210, 17 * (2 * i + 2) + 18 - 1, RGB565_BLUE);
+        ips200_draw_line(190, 17 * (2 * i + 1) + 18 - 1, 318, 17 * (2 * i + 1) + 18 - 1, RGB565_BLUE);
+        ips200_draw_line(190, 17 * (2 * i + 2) + 18 - 1, 318, 17 * (2 * i + 2) + 18 - 1, RGB565_GREEN);
+    }
 }
 
 static inline void menuShow0(int8_t* selectEnum)
@@ -685,29 +697,27 @@ void menuScanner(void)
             {
                 *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepL[level1];
                 saveSettingsToFlash();
+                controllerInit();
             }
             else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
             {
                 *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepS[level1];
                 saveSettingsToFlash();
+                controllerInit();
             }
             else if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
             {
                 *menuType[1].typeOption[level1] += menuType[1].typeOptionStepS[level1];
                 saveSettingsToFlash();
+                controllerInit();
             }
             else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
             {
                 *menuType[1].typeOption[level1] += menuType[1].typeOptionStepL[level1];
                 saveSettingsToFlash();
+                controllerInit();
             }
             else if (key_get_state(KEY_5) == KEY_SHORT_PRESS) level1++;
-            else if (key_get_state(KEY_3) == KEY_LONG_PRESS)
-            {
-                showType++;
-                ips200_clear();
-                while (key_get_state(KEY_3) == KEY_LONG_PRESS);
-            }
             else if (key_get_state(KEY_1) == KEY_LONG_PRESS)
             {
                 menuState = select0;

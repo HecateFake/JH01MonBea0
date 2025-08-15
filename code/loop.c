@@ -43,16 +43,16 @@ static float pitSafeRange[2] = {-0.5f, 0.5f};   // 定义俯仰角安全范围
 
 #define deadZone 800.0f  // 行进轮死区
 
-float dynamicXeroPointGain1 = 0.0023f;  // 左转压弯增益
-float dynamicXeroPointGain0 = 0.0022f;  // 右转压弯增益
+float dynamicXeroPointGain1 = 0.0025f;  // 左转压弯增益
+float dynamicXeroPointGain0 = 0.0025f;  // 右转压弯增益
 
-float pitMid = 0.071f;
-float rolMid = -1.536f;
+float pitMid = 0.047f;
+float rolMid = -1.535f;
 
-float imageAreaMinLow = 10.0f;
+float imageAreaMinLow = 3.0f;
 float imageAreaMaxLow = 600.0f;
 float imageAreaMinHigh = 0.0f;
-float imageAreaMaxHigh = 10.0f;
+float imageAreaMaxHigh = 0.0f;
 
 float upDeadZone = 0.08f;     // 图像处理死区
 float downDeadZone = 0.29f;   // 图像处理死区
@@ -62,9 +62,9 @@ float rightDeadZone = 0.00f;  // 图像处理死区
 float lStAng = 11.0f;
 float rStAng = 11.0f;
 float lReAng = 10.5f;
-float rReAng = 11.0f;
+float rReAng = 10.5f;
 float lturnAng = 10.5f;
-float rturnAng = 11.0f;
+float rturnAng = 10.0f;
 float lOutAng = 17.5f;
 float rOutAng = 17.5f;
 
@@ -88,7 +88,7 @@ float schWantRolHigh = 1.0f;
 float schWantRolLow = 0.8f;
 float schYawErrHigh = 0.56f;
 float schYawErrLow = 0.36f;
-float schVidioCenterHigh = 105.0f;
+float schVidioCenterHigh = 95.0f;
 float schVidioCenterLow = 65.0f;
 
 float originVisionState = 1.0f;
@@ -110,6 +110,7 @@ void controllerInit(void)
 
     sEncCleCon();  // 清除行进轮编码器计数
 
+    mt9v03x_init();
     twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, imageAreaMinLow, imageAreaMaxLow, imageAreaMinHigh, imageAreaMaxHigh, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
 
     magnaticEncoderPhaseLockedLoopInit(150.0f, 0.25f, 0.008f);  // 磁编码器锁相环初始化
@@ -311,7 +312,7 @@ void pit0(void)
     }
 
     // 设置电机转速
-    sMotorSetting(-sPwm, 10000);
+    sMotorSetting(sPwm, 10000);
     small_driver_set_duty(rRolPwm, -lRolPwm);
 
     if (timer == angPeriodMultiple * velPeriodMultiple) timer = 0;  // 时间标识位清零

@@ -49,7 +49,6 @@ int core0_main(void)
     // 此处编写用户代码 例如外设初始化代码等
 
     imu660rx_init();
-    mt9v03x_init();                                                             // 摄像头初始化
     encoder_quad_init(singleEncoderTimer, singleEncoderCh1, singleEncoderCh2);  // 行进轮编码器初始化
     magnaticEncoderInit();
     ips200_init(IPS200_TYPE_SPI);
@@ -76,7 +75,18 @@ int core0_main(void)
     while (TRUE)
     {
         // 此处编写需要循环执行的代码
-
+        vofa_send_12ch(pitOme.controlValue,  // l0
+            imuData.gz,                      // l1
+            pitAng.controlValue,             // l2
+            imuData.roll,                    // l3
+            pitVel.controlValue,             // l4
+            rolOme.controlValue,             // l5
+            imuData.gx,                      // l6
+            rolAng.controlValue,             // l7
+            imuData.pitch,                   // l8
+            rolVel.controlValue,             // l9
+            rolRpm.filteredValue,            // l10
+            yawOmeTar);                      // l11
         //  此处编写需要循环执行的代码
     }
 }

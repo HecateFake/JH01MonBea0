@@ -17,7 +17,7 @@ float thresholdHigh = 255;  // 二值化高阈值
 
 float visionCenter = 0.0f;
 float visionCenterLeft = 60.0f;
-float visionCenterRight = 107.0f;
+float visionCenterRight = 100.0f;
 float visionPolarity = 1.0f;
 
 float visionErrRange = 1.89f;
@@ -31,7 +31,7 @@ float BlobCount = 0.0f;
 
 static inline float dynamicErrGain(BEAINF* obj)
 {
-    return (pMax - (pMax - pMin) * powf((float) obj->sbea[obj->selectedIndex].beaArea / 600.0f, 0.3f));
+    return (pMax - (pMax - pMin) * sqrtf((float) obj->sbea[obj->selectedIndex].beaArea / 600.0f));
 }
 static inline float errGenerate(BEAINF* obj)
 {
