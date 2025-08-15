@@ -281,13 +281,13 @@ typedef struct
     CroppedImage8* data;  ///< 源二值图像数据指针（输入）
     CroppedImage8* show;  ///< 显示用图像指针（输出，用于标记检测结果）
 
-    float areaTopMin;
-    float areaTopMax;
-    float kMin;
-    float kMax;
+    float areaTopMin;  ///< 顶部面积最小值
+    float areaTopMax;  ///< 顶部面积最大值
+    float kMin;        ///< 动态面积最小值系数
+    float kMax;        ///< 动态面积最大值系数
 
-    uint16_t xRange[2];         ///< X坐标有效范围 [最小X, 最大X]（基于死区计算）
-    uint16_t yRange[2];         ///< Y坐标有效范围 [最小Y, 最大Y]（基于死区计算）
+    uint16_t xRange[2];  ///< X坐标有效范围 [最小X, 最大X]（基于死区计算）
+    uint16_t yRange[2];  ///< Y坐标有效范围 [最小Y, 最大Y]（基于死区计算）
 
     uint16_t beaCount;                   ///< 检测到的有效区域数量（0-100）
     uint8_t lastFrameBeaExist;           ///< 上一帧是否有有效区域（0=无, 1=有）
