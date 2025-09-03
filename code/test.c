@@ -26,7 +26,7 @@ static inline void testTimerUpdate(void)
     if (neoTestState)
     {
         testTimer++;
-        if (testTimer >= 12000) testTimer = 0;
+        if (testTimer >= 9000) testTimer = 0;
     }
     else testTimer = 0;
 }
@@ -34,17 +34,17 @@ static void AUTOtestHandler(void)
 {
     // Handle AUTO test mode
     testTimerUpdate();
-    if (testTimer <= 3000)
+    if (testTimer <= 2000)
     {
         pitVelTar = visionPitErr;
         yawOmeTar = 0.0f;
     }
-    else if (testTimer <= 6000)
+    else if (testTimer <= 4500)
     {
         pitVelTar = visionPitErr;
         yawOmeTar = visionErrRange;
     }
-    else if (testTimer <= 9000)
+    else if (testTimer <= 6500)
     {
         pitVelTar = visionPitErr;
         yawOmeTar = 0.0f;

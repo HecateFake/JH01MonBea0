@@ -190,7 +190,7 @@ static inline void angLoop(void)
     schmittProcess(&rYawAng, fabs(tDeg(imuData.pitch - rolMid)));
     schmittProcess(&eYawOme, fabs(yawOmeTar));
 
-    if (!testState)
+    if (testState != 1)
     {
         if (yawOmeTar <= 0)
         {

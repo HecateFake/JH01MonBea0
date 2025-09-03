@@ -46,7 +46,7 @@ void menuInit(void)
     menuOptionSetting();
 
     // 加载flash中保存的设置
-    // loadSettingsFromFlash();
+    loadSettingsFromFlash();
 }
 
 static inline void cameraShow(int8_t* showType)
