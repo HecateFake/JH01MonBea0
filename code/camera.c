@@ -69,13 +69,13 @@ void visionProcessMT9V034(void)
 
         schmittProcess(&sYawErr, fabs(visionErr));
 
-        if (!startState) yawOmeTar = visionState ? (sYawErr.outputState ? visionErr : 0) : 0;
+        if (!startState) yawOmeTar = visionState ? (sYawErr.outputState ? visionErr : 0) : yawOmeTar;
         else
         {
-            yawOmeTar = 0;
+            yawOmeTar = yawOmeTar;
             if (beaInf.beaCount) startState = 0;
         }
-        pitVelTar = visionState ? (visionPitErr) : 0;
+        pitVelTar = visionState ? (visionPitErr) : pitVelTar;
 
         mt9v03x_finish_flag = 0;
     }

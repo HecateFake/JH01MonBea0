@@ -29,6 +29,7 @@ typedef enum
     select0,
     select1,
     edit,
+    menuStateCount,
 } MENUSTATEENUM;
 
 typedef struct

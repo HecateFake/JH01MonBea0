@@ -46,8 +46,8 @@ static float pitSafeRange[2] = {-0.5f, 0.5f};   // 定义俯仰角安全范围
 float dynamicXeroPointGain1 = 0.0025f;  // 左转压弯增益
 float dynamicXeroPointGain0 = 0.0025f;  // 右转压弯增益
 
-float pitMid = 0.047f;
-float rolMid = -1.535f;
+float pitMid = 0.020f;
+float rolMid = -1.550f;
 
 float imageAreaMinLow = 3.0f;
 float imageAreaMaxLow = 600.0f;
@@ -101,6 +101,8 @@ float rRolPwm = 0;  // 右飞轮pwm输出占空比
 float lRolPwm = 0;  // 左飞轮pwm输出占空比
 void controllerInit(void)
 {
+    testInit();
+
     startState = 1;
     state = 0;
     visionState = 0;   // 视觉状态初始化为0
@@ -110,7 +112,6 @@ void controllerInit(void)
 
     sEncCleCon();  // 清除行进轮编码器计数
 
-    mt9v03x_init();
     twoPassConnectedAreaInit(&beaInf, BLACK, &binaryBuffer, &binaryShow, imageAreaMinLow, imageAreaMaxLow, imageAreaMinHigh, imageAreaMaxHigh, leftDeadZone, rightDeadZone, upDeadZone, downDeadZone);  // 初始化连通区域检测
 
     magnaticEncoderPhaseLockedLoopInit(150.0f, 0.25f, 0.008f);  // 磁编码器锁相环初始化
@@ -293,6 +294,8 @@ uint8_t buzzerState = 0;
 static uint8_t buzzerCount = 0;
 void pit0(void)
 {
+    testProcess();
+
     timer++;  // 计时标识自增
 
     postureProcess(&imuData);  // 姿态解算

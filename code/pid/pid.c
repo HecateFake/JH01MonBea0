@@ -3,8 +3,27 @@
  *
  *  Created on: 2024年12月9日
  *      Author: Hecate
+ *      Update: 2025年9月2日
+ *
+ * @file pid.c
+ * @brief PID控制器算法实现
+ *
+ * 本文件实现了完整的PID控制算法，包括位置式PID和增量式PID两种模式。
+ * 支持自动模式选择、积分限幅、参数调节等功能，适用于各种实时控制系统。
+ *
+ * @version 1.1
+ * @date 2025-09-02
+ *
+ * @details 算法特点：
+ *          - 位置式PID：直接输出控制量，适合大多数控制系统
+ *          - 增量式PID：输出控制增量，适合累积输出系统
+ *          - 积分限幅：防止积分饱和问题
+ *          - 除零保护：确保Ki=0时的安全性
+ *          - 函数指针：高效的算法选择机制
  */
 #include "pid.h"
+
+#include <math.h>
 
 /**
  * @brief 增量式PID控制算法处理函数
@@ -25,7 +44,7 @@
  *       - 计算机故障时影响较小
  *       - 手动/自动切换时冲击较小
  */
-static void incrementalPidProcess(PID *obj, float currentValue)
+static void incrementalPidProcessHandler(PID *obj, float currentValue)
 {
     // 误差计算
     obj->error = obj->expectedValue - currentValue;
@@ -64,7 +83,7 @@ static void incrementalPidProcess(PID *obj, float currentValue)
  *       - 需要积分限幅防止饱和
  *       - 每次输出都与整个过去的状态有关
  */
-static void positionalPidProcess(PID *obj, float currentValue)
+static void positionalPidHandler(PID *obj, float currentValue)
 {
     // 误差计算
     obj->error = obj->expectedValue - currentValue;
@@ -75,10 +94,8 @@ static void positionalPidProcess(PID *obj, float currentValue)
     // 积分限幅 - 添加除零保护
     if (obj->ki != 0.0f)
     {
-        if ((obj->ki * obj->integral) > obj->integralMax)
-            obj->integral = (obj->integralMax / obj->ki);
-        else if ((obj->ki * obj->integral) < -obj->integralMax)
-            obj->integral = -(obj->integralMax / obj->ki);
+        if (obj->integral > obj->integralMax) obj->integral = obj->integralMax;
+        else if (obj->integral < -obj->integralMax) obj->integral = -obj->integralMax;
     }
 
     // 控制值计算
@@ -90,6 +107,21 @@ static void positionalPidProcess(PID *obj, float currentValue)
     // 误差存储
     obj->lastError = obj->error;
 }
+
+/**
+ * @brief PID算法处理函数指针数组
+ *
+ * 根据PidMode枚举值作为索引，选择对应的PID算法处理函数。
+ * 这种设计避免了条件分支，提高了执行效率。
+ *
+ * @note 数组索引对应关系：
+ *       - [0] positionMode  -> positionalPidHandler
+ *       - [1] incrementMode -> incrementalPidProcessHandler
+ */
+static const void (*pidHandlers[])(PID*, float) = {
+    positionalPidHandler,        // 位置式PID处理函数
+    incrementalPidProcessHandler // 增量式PID处理函数
+};
 
 /**
  * @brief PID控制器主处理函数
@@ -106,10 +138,7 @@ static void positionalPidProcess(PID *obj, float currentValue)
  */
 void pidProcess(PID *obj, float currentValue)
 {
-    if (obj->pidMode == positionMode)
-        positionalPidProcess(obj, currentValue);
-    else
-        incrementalPidProcess(obj, currentValue);
+    pidHandlers[obj->pidMode](obj, currentValue);
 }
 
 /**
@@ -140,20 +169,30 @@ void pidProcess(PID *obj, float currentValue)
  *       1. 先调kp，使系统有合适的响应速度
  *       2. 再调ki，消除稳态误差
  *       3. 最后调kd，改善动态性能
+ *
+ * @implementation 实现细节：
+ *                 - integralMax=0时自动选择增量式PID
+ *                 - integralMax>0时自动选择位置式PID
+ *                 - 所有状态变量都会被重置为0
+ *                 - 确保初始状态的一致性
  */
 void pidInit(float integralMax, PID *obj, float target, float kp, float ki, float kd)
 {
+    // 根据积分限幅参数自动选择PID模式
     if (integralMax == 0)
-        obj->pidMode = incrementMode;
+        obj->pidMode = incrementMode;  // 增量式PID（无积分限幅）
     else
-        obj->pidMode = positionMode;
+        obj->pidMode = positionMode;   // 位置式PID（需要积分限幅）
 
+    // 设置控制参数
     obj->expectedValue = target;
     obj->kp = kp;
     obj->ki = ki;
     obj->kd = kd;
-    obj->integralMax = integralMax;
+    if (ki) obj->integralMax = fabs(integralMax/ki);
+    else obj->integralMax = 0.0f; // 避免除零错误
 
+    // 初始化所有状态变量为0，确保干净的起始状态
     obj->lastError = 0;
     obj->beforeLastError = 0;
     obj->integral = 0;

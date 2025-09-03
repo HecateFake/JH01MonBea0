@@ -20,8 +20,412 @@
 #include "imu.h"
 #include "motor.h"
 #include "small_driver_uart_control.h"
+#include "test.h"
+
+static inline void saveSettingsToFlash(void);
+static inline void loadSettingsFromFlash(void);
+static inline void menuOptionSetting(void);
 
 static MENUTYPE menuType[7];
+
+static int8_t level0 = 2;
+static int8_t level1 = 0;
+static MENUSTATEENUM menuState = visionShow;
+
+static int8_t showType = 0;
+static uint8_t brushedMotorTest = 0;
+static uint8_t brushlessMotorTest = 0;
+
+void menuInit(void)
+{
+    menuState = visionShow;
+    showType = 0;
+    brushedMotorTest = 0;
+    brushlessMotorTest = 0;
+
+    menuOptionSetting();
+
+    // 加载flash中保存的设置
+    // loadSettingsFromFlash();
+}
+
+static inline void cameraShow(int8_t* showType)
+{
+    if (*showType > 1) *showType = 0;
+    else if (*showType < 0) *showType = 1;
+    ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint16_t) (beaInf.areaTopMax + beaInf.kMax * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 17, beaInf.sbea[beaInf.selectedIndex].beaArea, 3);
+    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 33, (uint16_t) (beaInf.areaTopMin + beaInf.kMin * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
+    ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
+    ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
+    ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
+    ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
+    ips200_draw_line(0, 239, 319, 239, RGB565_GREEN);
+    ips200_draw_line(0, 119, 189, 119, RGB565_GREEN);
+    ips200_draw_line(189, 0, 189, 239, RGB565_GREEN);
+    ips200_draw_line(visionCenter, beaInf.yRange[0] + 1, visionCenter, beaInf.yRange[1] - 1, visionPolarity ? RGB565_PINK : RGB565_BLUE);
+    ips200_draw_line(beaInf.xRange[0] + 1, beaInf.yRange[0], beaInf.xRange[0] + 1, beaInf.yRange[1], RGB565_CYAN);
+    ips200_draw_line(beaInf.xRange[1], beaInf.yRange[0], beaInf.xRange[1], beaInf.yRange[1], RGB565_CYAN);
+    ips200_draw_line(beaInf.xRange[0], beaInf.yRange[0], beaInf.xRange[1], beaInf.yRange[0], RGB565_CYAN);
+    ips200_draw_line(beaInf.xRange[0], beaInf.yRange[1], beaInf.xRange[1], beaInf.yRange[1], RGB565_CYAN);
+    for (uint8_t i = 0; i < menuType[0].typeOptionCount; i++)
+    {
+        ips200_show_string(194, 34 * i + 1, menuType[0].typeOptionName[i]);
+        if ((i == 4 || i == 5 || i == 6) && testState != 1) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
+        else ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
+        ips200_draw_line(190, 17 * (2 * i + 1) + 1 - 1, 318, 17 * (2 * i + 1) + 1 - 1, RGB565_BLUE);
+        if (i < menuType[0].typeOptionCount - 1) ips200_draw_line(190, 17 * (2 * i + 2) + 1 - 1, 318, 17 * (2 * i + 2) + 1 - 1, RGB565_GREEN);
+    }
+}
+
+static inline void thresholdEdit(int8_t* showType, int8_t* editEnum)
+{
+    if (*showType > 1) *showType = 0;
+    else if (*showType < 0) *showType = 1;
+    if (*editEnum >= menuType[1].typeOptionCount) *editEnum = 0;
+    else if (*editEnum < 0) *editEnum = menuType[1].typeOptionCount - 1;
+    ips200_show_gray_image(1, 1, binRel, 188, 120, 188, 118, 0);
+    ips200_show_gray_image(1, 120, binBuf, 188, 120, 188, 119, 0);
+    ips200_show_gray_image(190, 154, binSho, 188, 120, 129, 85, 0);
+    ips200_show_string(194, 1, menuType[1].typeName);
+    ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
+    ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
+    ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
+    ips200_draw_line(0, 239, 319, 239, RGB565_GREEN);
+    ips200_draw_line(0, 119, 189, 119, RGB565_GREEN);
+    ips200_draw_line(189, 0, 189, 239, RGB565_GREEN);
+    ips200_draw_line(190, 17, 318, 17, RGB565_GREEN);
+    for (uint8_t i = 0; i < menuType[1].typeOptionCount; i++)
+    {
+        ips200_show_string(194, 34 * i + 18, menuType[1].typeOptionName[i]);
+        ips200_show_string(194, 17 * (2 * i + 1) + 18, (i == *editEnum) ? ">>" : "  ");
+        ips200_show_float(211, 17 * (2 * i + 1) + 18, *menuType[1].typeOption[i], 4, 5);
+        ips200_draw_line(210, 17 * (2 * i + 1) + 18 - 1, 210, 17 * (2 * i + 2) + 18 - 1, RGB565_BLUE);
+        ips200_draw_line(190, 17 * (2 * i + 1) + 18 - 1, 318, 17 * (2 * i + 1) + 18 - 1, RGB565_BLUE);
+        ips200_draw_line(190, 17 * (2 * i + 2) + 18 - 1, 318, 17 * (2 * i + 2) + 18 - 1, RGB565_GREEN);
+    }
+}
+
+static inline void menuShow0(int8_t* selectEnum)
+{
+    if (*selectEnum > 6) *selectEnum = 2;
+    else if (*selectEnum < 2) *selectEnum = 6;
+    ips200_draw_line(0, 85 - 1, 319, 85 - 1, RGB565_GREEN);
+    ips200_draw_line(0, 85, 0, 17 * 5 + 85 - 2, RGB565_GREEN);
+    ips200_draw_line(17, 85, 17, 17 * 5 + 85 - 2, RGB565_GREEN);
+    ips200_draw_line(319, 85, 319, 17 * 5 + 85 - 2, RGB565_GREEN);
+    for (uint8_t i = 0; i < 5; i++)
+    {
+        ips200_show_string(1, 17 * i + 85, (i + 2 == *selectEnum) ? ">>" : "  ");
+        ips200_show_string(22, 17 * i + 85, menuType[i + 2].typeName);
+        ips200_draw_line(0, 17 * (i + 1) + 85 - 1, 319, 17 * (i + 1) + 85 - 1, RGB565_GREEN);
+    }
+}
+
+static inline void menuShow(int8_t* page, int8_t* selectEnum)
+{
+    if (*page > 6) *page = 2;
+    else if (*page < 2) *page = 6;
+    if (*selectEnum >= menuType[*page].typeOptionCount) *selectEnum = 0;
+    else if (*selectEnum < 0) *selectEnum = menuType[*page].typeOptionCount - 1;
+    uint16_t emptyY = 240 - menuType[*page].typeOptionCount * 17 - 1;
+    emptyY = emptyY >> 1;
+    if (emptyY) ips200_draw_line(0, emptyY - 1, 319, emptyY - 1, RGB565_GREEN);
+    ips200_draw_line(0, emptyY, 0, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(17, emptyY, 17, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(225, emptyY, 225, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(319, emptyY, 319, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    for (uint8_t i = 0; i < menuType[*page].typeOptionCount; i++)
+    {
+        ips200_show_string(1, 17 * i + emptyY, (i == *selectEnum) ? ">>" : "  ");
+        ips200_show_string(22, 17 * i + emptyY, menuType[*page].typeOptionName[i]);
+        ips200_show_float(230, 17 * i + emptyY, *menuType[*page].typeOption[i], 4, 5);
+        ips200_draw_line(0, 17 * (i + 1) + emptyY - 1, 319, 17 * (i + 1) + emptyY - 1, RGB565_GREEN);
+    }
+}
+
+static inline void menuEdit(int8_t* page, int8_t* selectEnum)
+{
+    if (*page > 6) *page = 2;
+    else if (*page < 2) *page = 6;
+    if (*selectEnum >= menuType[*page].typeOptionCount) *selectEnum = 0;
+    else if (*selectEnum < 0) *selectEnum = menuType[*page].typeOptionCount - 1;
+    uint16_t emptyY = 240 - menuType[*page].typeOptionCount * 17 - 1;
+    emptyY = emptyY >> 1;
+    if (emptyY) ips200_draw_line(0, emptyY - 1, 319, emptyY - 1, RGB565_GREEN);
+    ips200_draw_line(0, emptyY, 0, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(17, emptyY, 17, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(225, emptyY, 225, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    ips200_draw_line(319, emptyY, 319, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
+    for (uint8_t i = 0; i < menuType[*page].typeOptionCount; i++)
+    {
+        ips200_show_string(1, 17 * i + emptyY, (i == *selectEnum) ? "=>" : "  ");
+        ips200_show_string(22, 17 * i + emptyY, menuType[*page].typeOptionName[i]);
+        ips200_show_float(230, 17 * i + emptyY, *menuType[*page].typeOption[i], 4, 5);
+        ips200_draw_line(0, 17 * (i + 1) + emptyY - 1, 319, 17 * (i + 1) + emptyY - 1, RGB565_GREEN);
+    }
+}
+
+static void visionShowHandler(void)
+{
+    cameraShow(&showType);
+    if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+        menuState = select0;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_1) == KEY_LONG_PRESS)
+    {
+        switch (brushedMotorTest)
+        {
+            case 0:
+                sPwm = 3000;
+                brushedMotorTest++;
+                break;
+            case 1:
+                sPwm = -3000;
+                brushedMotorTest++;
+                break;
+            case 2:
+                sPwm = 0;
+                brushedMotorTest = 0;
+                break;
+        }
+        ips200_clear();
+        while (key_get_state(KEY_1) == KEY_LONG_PRESS);
+    }
+    else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
+    {
+        menuState = thresholdEditor;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_2) == KEY_LONG_PRESS)
+    {
+        switch (brushlessMotorTest)
+        {
+            case 0:
+                lRolPwm = 2000;
+                rRolPwm = 2000;
+                brushlessMotorTest++;
+                break;
+            case 1:
+                lRolPwm = -2000;
+                rRolPwm = -2000;
+                brushlessMotorTest++;
+                break;
+            case 2:
+                lRolPwm = 0;
+                rRolPwm = 0;
+                brushlessMotorTest = 0;
+                break;
+        }
+        ips200_clear();
+        while (key_get_state(KEY_2) == KEY_LONG_PRESS);
+    }
+    else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) showType++;
+    else if (key_get_state(KEY_3) == KEY_LONG_PRESS)
+    {
+        testState++;
+        if (testState > 2) testState = 0;
+        if (testState == 0) ips200_full(RGB565_WHITE);
+        else if (testState == 1) ips200_full(RGB565_YELLOW);
+        else ips200_full(RGB565_BLUE);
+        while (key_get_state(KEY_3) == KEY_LONG_PRESS);
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        ips200_full(RGB565_GREEN);
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_4) == KEY_LONG_PRESS)
+    {
+        flash_erase_page(0, 0);
+        flash_buffer_clear();
+        menuInit();
+        controllerInit();
+        ips200_full(RGB565_RED);
+        while (key_get_state(KEY_4) == KEY_LONG_PRESS);
+        ips200_clear();
+    }
+    if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
+    {
+        if (testState == 0)
+        {
+            state = 1;
+            visionState = 1;
+            neoTestState = 0;
+        }
+        else if (testState == 1)
+        {
+            state = 1;
+            visionState = 0;
+            neoTestState = 0;
+        }
+        else
+        {
+            state = 1;
+            visionState = 0;
+            neoTestState = 1;
+        }
+    }
+}
+
+static void thresholdEditorHandler(void)
+{
+    thresholdEdit(&showType, &level1);
+    if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+        *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepL[level1];
+        saveSettingsToFlash();
+        controllerInit();
+
+        if (level1 == 2 || level1 == 3) mt9v03x_init();
+    }
+    else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
+    {
+        *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepS[level1];
+        saveSettingsToFlash();
+        controllerInit();
+
+        if (level1 == 2 || level1 == 3) mt9v03x_init();
+    }
+    else if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
+    {
+        *menuType[1].typeOption[level1] += menuType[1].typeOptionStepS[level1];
+        saveSettingsToFlash();
+        controllerInit();
+
+        if (level1 == 2 || level1 == 3) mt9v03x_init();
+    }
+    else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
+    {
+        *menuType[1].typeOption[level1] += menuType[1].typeOptionStepL[level1];
+        saveSettingsToFlash();
+        controllerInit();
+
+        if (level1 == 2 || level1 == 3) mt9v03x_init();
+    }
+    else if (key_get_state(KEY_5) == KEY_SHORT_PRESS) level1++;
+    else if (key_get_state(KEY_1) == KEY_LONG_PRESS)
+    {
+        menuState = select0;
+        ips200_clear();
+        while (key_get_state(KEY_1) == KEY_LONG_PRESS);
+    }
+    else if (key_get_state(KEY_5) == KEY_LONG_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        menuState = visionShow;
+        ips200_clear();
+        while (key_get_state(KEY_5) == KEY_LONG_PRESS);
+    }
+}
+
+static void select0Handler(void)
+{
+    menuShow0(&level0);
+    if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        menuState = visionShow;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) level0--;
+    else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) level0++;
+    else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
+    {
+        menuState = select1;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        menuState = visionShow;
+        ips200_clear();
+    }
+}
+
+static void select1Handler(void)
+{
+    menuShow(&level0, &level1);
+    if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+        menuState = select0;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) level1--;
+    else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) level1++;
+    else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
+    {
+        menuState = edit;
+        ips200_clear();
+    }
+    else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        menuState = visionShow;
+        ips200_clear();
+    }
+}
+
+static void editHandler(void)
+{
+    menuEdit(&level0, &level1);
+    if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+        *menuType[level0].typeOption[level1] -= menuType[level0].typeOptionStepL[level1];
+        saveSettingsToFlash();
+    }
+    else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
+    {
+        *menuType[level0].typeOption[level1] -= menuType[level0].typeOptionStepS[level1];
+        saveSettingsToFlash();
+    }
+    else if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
+    {
+        *menuType[level0].typeOption[level1] += menuType[level0].typeOptionStepS[level1];
+        saveSettingsToFlash();
+    }
+    else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
+    {
+        *menuType[level0].typeOption[level1] += menuType[level0].typeOptionStepL[level1];
+        saveSettingsToFlash();
+    }
+    else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
+    {
+        saveSettingsToFlash();
+        menuInit();
+        controllerInit();
+        menuState = select1;
+        ips200_clear();
+    }
+}
+
+static const void (*menuHandler[menuStateCount])(void) = {
+    visionShowHandler,
+    thresholdEditorHandler,
+    select0Handler,
+    select1Handler,
+    editHandler,
+};
+
+void menuScanner(void)
+{
+    menuHandler[menuState]();
+}
 
 static inline void saveSettingsToFlash(void)
 {
@@ -76,8 +480,8 @@ static inline void saveSettingsToFlash(void)
     flash_union_buffer[46].float_type = schYawErrLow;           // menuType[6][5]
     flash_union_buffer[47].float_type = schVidioCenterHigh;     // menuType[6][6]
     flash_union_buffer[48].float_type = schVidioCenterLow;      // menuType[6][7]
-    flash_union_buffer[49].float_type = auto_exp;               // menuType[2][12]
-    flash_union_buffer[50].float_type = exp_time;               // menuType[2][13]
+    flash_union_buffer[49].float_type = auto_exp;               // menuType[1][2]
+    flash_union_buffer[50].float_type = exp_time;               // menuType[1][3]
 
     if (flash_check(0, 0)) flash_erase_page(0, 0);
     flash_write_page_from_buffer(0, 0);
@@ -139,26 +543,13 @@ static inline void loadSettingsFromFlash(void)
         schYawErrLow = flash_union_buffer[46].float_type;           // menuType[6][5]
         schVidioCenterHigh = flash_union_buffer[47].float_type;     // menuType[6][6]
         schVidioCenterLow = flash_union_buffer[48].float_type;      // menuType[6][7]
-        auto_exp = flash_union_buffer[49].float_type;               // menuType[2][12]
-        exp_time = flash_union_buffer[50].float_type;               // menuType[2][13]
+        auto_exp = flash_union_buffer[49].float_type;               // menuType[1][2]
+        exp_time = flash_union_buffer[50].float_type;               // menuType[1][3]
     }
 }
 
-static int8_t level0 = 2;
-static int8_t level1 = 0;
-static MENUSTATEENUM menuState = visionShow;
-
-static int8_t showType = 0;
-static uint8_t brushedMotorTest = 0;
-static uint8_t brushlessMotorTest = 0;
-
-void menuInit(void)
+static inline void menuOptionSetting(void)
 {
-    menuState = visionShow;
-    showType = 0;
-    brushedMotorTest = 0;
-    brushlessMotorTest = 0;
-
     menuType[0].typeName = "Vision Show";
     menuType[0].typeOptionCount = 7;
 
@@ -469,350 +860,4 @@ void menuInit(void)
     menuType[6].typeOption[7] = &schVidioCenterLow;
     menuType[6].typeOptionStepS[7] = 1.0f;
     menuType[6].typeOptionStepL[7] = 10.0f;
-
-    // 加载flash中保存的设置
-    loadSettingsFromFlash();
-}
-
-static inline void cameraShow(int8_t* showType)
-{
-    if (*showType > 1) *showType = 0;
-    else if (*showType < 0) *showType = 1;
-    ips200_show_gray_image(1, 1, binSho, 188, 120, 188, 118, 0);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 1, (uint16_t) (beaInf.areaTopMax + beaInf.kMax * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 17, beaInf.sbea[beaInf.selectedIndex].beaArea, 3);
-    ips200_show_uint((uint16_t) beaInf.sbea[beaInf.selectedIndex].beaX + 1, (uint16_t) beaInf.sbea[beaInf.selectedIndex].beaY + 33, (uint16_t) (beaInf.areaTopMin + beaInf.kMin * (float) (beaInf.sbea[beaInf.selectedIndex].beaY - beaInf.yRange[0])), 3);
-    ips200_show_gray_image(1, 120, *showType ? binRel : binBuf, 188, 120, 188, 119, 0);
-    ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
-    ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
-    ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
-    ips200_draw_line(0, 239, 319, 239, RGB565_GREEN);
-    ips200_draw_line(0, 119, 189, 119, RGB565_GREEN);
-    ips200_draw_line(189, 0, 189, 239, RGB565_GREEN);
-    ips200_draw_line(visionCenter, beaInf.yRange[0] + 1, visionCenter, beaInf.yRange[1] - 1, visionPolarity ? RGB565_PINK : RGB565_BLUE);
-    ips200_draw_line(beaInf.xRange[0] + 1, beaInf.yRange[0], beaInf.xRange[0] + 1, beaInf.yRange[1], RGB565_CYAN);
-    ips200_draw_line(beaInf.xRange[1], beaInf.yRange[0], beaInf.xRange[1], beaInf.yRange[1], RGB565_CYAN);
-    ips200_draw_line(beaInf.xRange[0], beaInf.yRange[0], beaInf.xRange[1], beaInf.yRange[0], RGB565_CYAN);
-    ips200_draw_line(beaInf.xRange[0], beaInf.yRange[1], beaInf.xRange[1], beaInf.yRange[1], RGB565_CYAN);
-    for (uint8_t i = 0; i < menuType[0].typeOptionCount; i++)
-    {
-        ips200_show_string(194, 34 * i + 1, menuType[0].typeOptionName[i]);
-        if ((i == 4 || i == 5 || i == 6) && !testState) ips200_show_float(194, 17 * (2 * i + 1) + 1, tDeg(*menuType[0].typeOption[i]), 4, 5);
-        else ips200_show_float(194, 17 * (2 * i + 1) + 1, *menuType[0].typeOption[i], 4, 5);
-        ips200_draw_line(190, 17 * (2 * i + 1) + 1 - 1, 318, 17 * (2 * i + 1) + 1 - 1, RGB565_BLUE);
-        if (i < menuType[0].typeOptionCount - 1) ips200_draw_line(190, 17 * (2 * i + 2) + 1 - 1, 318, 17 * (2 * i + 2) + 1 - 1, RGB565_GREEN);
-    }
-}
-
-static inline void thresholdEdit(int8_t* showType, int8_t* editEnum)
-{
-    if (*showType > 1) *showType = 0;
-    else if (*showType < 0) *showType = 1;
-    if (*editEnum >= menuType[1].typeOptionCount) *editEnum = 0;
-    else if (*editEnum < 0) *editEnum = menuType[1].typeOptionCount - 1;
-    ips200_show_gray_image(1, 1, binRel, 188, 120, 188, 118, 0);
-    ips200_show_gray_image(1, 120, binBuf, 188, 120, 188, 119, 0);
-    ips200_show_gray_image(190, 154, binSho, 188, 120, 129, 85, 0);
-    ips200_show_string(194, 1, menuType[1].typeName);
-    ips200_draw_line(0, 0, 0, 239, RGB565_GREEN);
-    ips200_draw_line(0, 0, 319, 0, RGB565_GREEN);
-    ips200_draw_line(319, 0, 319, 239, RGB565_GREEN);
-    ips200_draw_line(0, 239, 319, 239, RGB565_GREEN);
-    ips200_draw_line(0, 119, 189, 119, RGB565_GREEN);
-    ips200_draw_line(189, 0, 189, 239, RGB565_GREEN);
-    ips200_draw_line(190, 17, 318, 17, RGB565_GREEN);
-    for (uint8_t i = 0; i < menuType[1].typeOptionCount; i++)
-    {
-        ips200_show_string(194, 34 * i + 18, menuType[1].typeOptionName[i]);
-        ips200_show_string(194, 17 * (2 * i + 1) + 18, (i == *editEnum) ? ">>" : "  ");
-        ips200_show_float(211, 17 * (2 * i + 1) + 18, *menuType[1].typeOption[i], 4, 5);
-        ips200_draw_line(210, 17 * (2 * i + 1) + 18 - 1, 210, 17 * (2 * i + 2) + 18 - 1, RGB565_BLUE);
-        ips200_draw_line(190, 17 * (2 * i + 1) + 18 - 1, 318, 17 * (2 * i + 1) + 18 - 1, RGB565_BLUE);
-        ips200_draw_line(190, 17 * (2 * i + 2) + 18 - 1, 318, 17 * (2 * i + 2) + 18 - 1, RGB565_GREEN);
-    }
-}
-
-static inline void menuShow0(int8_t* selectEnum)
-{
-    if (*selectEnum > 6) *selectEnum = 2;
-    else if (*selectEnum < 2) *selectEnum = 6;
-    ips200_draw_line(0, 85 - 1, 319, 85 - 1, RGB565_GREEN);
-    ips200_draw_line(0, 85, 0, 17 * 5 + 85 - 2, RGB565_GREEN);
-    ips200_draw_line(17, 85, 17, 17 * 5 + 85 - 2, RGB565_GREEN);
-    ips200_draw_line(319, 85, 319, 17 * 5 + 85 - 2, RGB565_GREEN);
-    for (uint8_t i = 0; i < 5; i++)
-    {
-        ips200_show_string(1, 17 * i + 85, (i + 2 == *selectEnum) ? ">>" : "  ");
-        ips200_show_string(22, 17 * i + 85, menuType[i + 2].typeName);
-        ips200_draw_line(0, 17 * (i + 1) + 85 - 1, 319, 17 * (i + 1) + 85 - 1, RGB565_GREEN);
-    }
-}
-
-static inline void menuShow(int8_t* page, int8_t* selectEnum)
-{
-    if (*page > 6) *page = 2;
-    else if (*page < 2) *page = 6;
-    if (*selectEnum >= menuType[*page].typeOptionCount) *selectEnum = 0;
-    else if (*selectEnum < 0) *selectEnum = menuType[*page].typeOptionCount - 1;
-    uint16_t emptyY = 240 - menuType[*page].typeOptionCount * 17 - 1;
-    emptyY = emptyY >> 1;
-    if (emptyY) ips200_draw_line(0, emptyY - 1, 319, emptyY - 1, RGB565_GREEN);
-    ips200_draw_line(0, emptyY, 0, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(17, emptyY, 17, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(225, emptyY, 225, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(319, emptyY, 319, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    for (uint8_t i = 0; i < menuType[*page].typeOptionCount; i++)
-    {
-        ips200_show_string(1, 17 * i + emptyY, (i == *selectEnum) ? ">>" : "  ");
-        ips200_show_string(22, 17 * i + emptyY, menuType[*page].typeOptionName[i]);
-        ips200_show_float(230, 17 * i + emptyY, *menuType[*page].typeOption[i], 4, 5);
-        ips200_draw_line(0, 17 * (i + 1) + emptyY - 1, 319, 17 * (i + 1) + emptyY - 1, RGB565_GREEN);
-    }
-}
-
-static inline void menuEdit(int8_t* page, int8_t* selectEnum)
-{
-    if (*page > 6) *page = 2;
-    else if (*page < 2) *page = 6;
-    if (*selectEnum >= menuType[*page].typeOptionCount) *selectEnum = 0;
-    else if (*selectEnum < 0) *selectEnum = menuType[*page].typeOptionCount - 1;
-    uint16_t emptyY = 240 - menuType[*page].typeOptionCount * 17 - 1;
-    emptyY = emptyY >> 1;
-    if (emptyY) ips200_draw_line(0, emptyY - 1, 319, emptyY - 1, RGB565_GREEN);
-    ips200_draw_line(0, emptyY, 0, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(17, emptyY, 17, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(225, emptyY, 225, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    ips200_draw_line(319, emptyY, 319, 17 * menuType[*page].typeOptionCount + emptyY - 2, RGB565_GREEN);
-    for (uint8_t i = 0; i < menuType[*page].typeOptionCount; i++)
-    {
-        ips200_show_string(1, 17 * i + emptyY, (i == *selectEnum) ? "=>" : "  ");
-        ips200_show_string(22, 17 * i + emptyY, menuType[*page].typeOptionName[i]);
-        ips200_show_float(230, 17 * i + emptyY, *menuType[*page].typeOption[i], 4, 5);
-        ips200_draw_line(0, 17 * (i + 1) + emptyY - 1, 319, 17 * (i + 1) + emptyY - 1, RGB565_GREEN);
-    }
-}
-
-void menuScanner(void)
-{
-    switch (menuState)
-    {
-        case visionShow:
-            cameraShow(&showType);
-            if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
-            {
-                menuState = select0;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_1) == KEY_LONG_PRESS)
-            {
-                switch (brushedMotorTest)
-                {
-                    case 0:
-                        sPwm = 3000;
-                        brushedMotorTest++;
-                        break;
-                    case 1:
-                        sPwm = -3000;
-                        brushedMotorTest++;
-                        break;
-                    case 2:
-                        sPwm = 0;
-                        brushedMotorTest = 0;
-                        break;
-                }
-                ips200_clear();
-                while (key_get_state(KEY_1) == KEY_LONG_PRESS);
-            }
-            else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
-            {
-                menuState = thresholdEditor;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_2) == KEY_LONG_PRESS)
-            {
-                switch (brushlessMotorTest)
-                {
-                    case 0:
-                        lRolPwm = 2000;
-                        rRolPwm = 2000;
-                        brushlessMotorTest++;
-                        break;
-                    case 1:
-                        lRolPwm = -2000;
-                        rRolPwm = -2000;
-                        brushlessMotorTest++;
-                        break;
-                    case 2:
-                        lRolPwm = 0;
-                        rRolPwm = 0;
-                        brushlessMotorTest = 0;
-                        break;
-                }
-                ips200_clear();
-                while (key_get_state(KEY_2) == KEY_LONG_PRESS);
-            }
-            else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) showType++;
-            else if (key_get_state(KEY_3) == KEY_LONG_PRESS)
-            {
-                if (testState) testState = 0;
-                else testState = 1;
-                ips200_clear();
-                while (key_get_state(KEY_3) == KEY_LONG_PRESS);
-            }
-            else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                ips200_full(RGB565_GREEN);
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_4) == KEY_LONG_PRESS)
-            {
-                flash_erase_page(0, 0);
-                flash_buffer_clear();
-                menuInit();
-                controllerInit();
-                ips200_full(RGB565_RED);
-                while (key_get_state(KEY_4) == KEY_LONG_PRESS);
-                ips200_clear();
-            }
-            if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
-            {
-                if (testState)
-                {
-                    state = 1;
-                    visionState = 0;
-                }
-                else
-                {
-                    state = 1;
-                    visionState = 1;
-                }
-            }
-            break;
-        case thresholdEditor:
-            thresholdEdit(&showType, &level1);
-            if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
-            {
-                *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepL[level1];
-                saveSettingsToFlash();
-                controllerInit();
-            }
-            else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
-            {
-                *menuType[1].typeOption[level1] -= menuType[1].typeOptionStepS[level1];
-                saveSettingsToFlash();
-                controllerInit();
-            }
-            else if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
-            {
-                *menuType[1].typeOption[level1] += menuType[1].typeOptionStepS[level1];
-                saveSettingsToFlash();
-                controllerInit();
-            }
-            else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
-            {
-                *menuType[1].typeOption[level1] += menuType[1].typeOptionStepL[level1];
-                saveSettingsToFlash();
-                controllerInit();
-            }
-            else if (key_get_state(KEY_5) == KEY_SHORT_PRESS) level1++;
-            else if (key_get_state(KEY_1) == KEY_LONG_PRESS)
-            {
-                menuState = select0;
-                ips200_clear();
-                while (key_get_state(KEY_1) == KEY_LONG_PRESS);
-            }
-            else if (key_get_state(KEY_5) == KEY_LONG_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                menuState = visionShow;
-                ips200_clear();
-                while (key_get_state(KEY_5) == KEY_LONG_PRESS);
-            }
-            break;
-        case select0:
-            menuShow0(&level0);
-            if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                menuState = visionShow;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) level0--;
-            else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) level0++;
-            else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
-            {
-                menuState = select1;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                menuState = visionShow;
-                ips200_clear();
-            }
-            break;
-        case select1:
-            menuShow(&level0, &level1);
-            if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
-            {
-                menuState = select0;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) level1--;
-            else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) level1++;
-            else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
-            {
-                menuState = edit;
-                ips200_clear();
-            }
-            else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                menuState = visionShow;
-                ips200_clear();
-            }
-            break;
-        case edit:
-            menuEdit(&level0, &level1);
-            if (key_get_state(KEY_1) == KEY_SHORT_PRESS)
-            {
-                *menuType[level0].typeOption[level1] -= menuType[level0].typeOptionStepL[level1];
-                saveSettingsToFlash();
-            }
-            else if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
-            {
-                *menuType[level0].typeOption[level1] -= menuType[level0].typeOptionStepS[level1];
-                saveSettingsToFlash();
-            }
-            else if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
-            {
-                *menuType[level0].typeOption[level1] += menuType[level0].typeOptionStepS[level1];
-                saveSettingsToFlash();
-            }
-            else if (key_get_state(KEY_4) == KEY_SHORT_PRESS)
-            {
-                *menuType[level0].typeOption[level1] += menuType[level0].typeOptionStepL[level1];
-                saveSettingsToFlash();
-            }
-            else if (key_get_state(KEY_5) == KEY_SHORT_PRESS)
-            {
-                saveSettingsToFlash();
-                menuInit();
-                controllerInit();
-                menuState = select1;
-                ips200_clear();
-            }
-            break;
-    }
 }

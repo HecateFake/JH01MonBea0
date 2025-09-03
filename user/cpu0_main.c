@@ -51,8 +51,15 @@ int core0_main(void)
     imu660rx_init();
     encoder_quad_init(singleEncoderTimer, singleEncoderCh1, singleEncoderCh2);  // 行进轮编码器初始化
     magnaticEncoderInit();
+    mt9v03x_init();
     ips200_init(IPS200_TYPE_SPI);
-    wireless_uart_init();                                // 无线串口初始化
+
+#if TEST_MODE == AUTO
+    wireless_uart_init();
+#elif TEST_MODE == REMOTE
+    uart_receiver_init();
+#endif
+
     small_driver_uart_init();                            // 初始化无刷驱动通讯功能
     motorInit();                                         // 初始化有刷驱动引脚
     gpio_init(buzzerPin, GPO, GPIO_LOW, GPO_PUSH_PULL);  // 蜂鸣器初始化
@@ -75,6 +82,8 @@ int core0_main(void)
     while (TRUE)
     {
         // 此处编写需要循环执行的代码
+
+#if TEST_MODE == AUTO
         vofa_send_12ch(pitOme.controlValue,  // l0
             imuData.gz,                      // l1
             pitAng.controlValue,             // l2
@@ -87,6 +96,8 @@ int core0_main(void)
             rolVel.controlValue,             // l9
             rolRpm.filteredValue,            // l10
             yawOmeTar);                      // l11
+#endif
+
         //  此处编写需要循环执行的代码
     }
 }

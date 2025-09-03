@@ -132,6 +132,7 @@
 #include "mahony.h"
 #include "menu.h"
 #include "small_driver_uart_control.h"
+#include "test.h"
 //=====================================================用户层=======================================================
 
 #endif

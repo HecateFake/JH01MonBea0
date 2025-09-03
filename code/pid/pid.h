@@ -3,6 +3,16 @@
  *
  *  Created on: 2024年12月9日
  *      Author: Hecate
+ *      Update: 2025年9月2日
+ *
+ * @file pid.h
+ * @brief PID控制器库头文件
+ *
+ * 本库提供完整的PID控制算法实现，支持位置式和增量式两种PID控制模式。
+ * 适用于温度控制、速度控制、位置控制等各种控制系统应用。
+ *
+ * @version 1.1
+ * @date 2025-09-02
  */
 
 #ifndef CODE_PID_H_
@@ -82,6 +92,10 @@ typedef struct
  *       1. 先调kp，使系统有合适的响应速度
  *       2. 再调ki，消除稳态误差
  *       3. 最后调kd，改善动态性能
+ *
+ * @warning 注意事项：
+ *          - obj指针不能为NULL
+ *          - integralMax应为正值或0
  */
 void pidInit(float integralMax, PID *obj, float target, float kp, float ki, float kd);
 
@@ -96,6 +110,8 @@ void pidInit(float integralMax, PID *obj, float target, float kp, float ki, floa
  *
  * @note 目标值变化时，系统会产生新的误差，
  *       PID控制器将自动调整输出以跟踪新目标
+ *
+ * @warning obj指针不能为NULL
  */
 void pidSetTarget(PID *obj, float targetValue);
 
@@ -109,10 +125,15 @@ void pidSetTarget(PID *obj, float targetValue);
  * @param currentValue 当前系统输出值/反馈值
  *
  * @details 根据obj->pidMode的值选择处理方式：
- *          - position: 使用位置式PID算法
- *          - increment: 使用增量式PID算法
+ *          - positionMode: 使用位置式PID算法
+ *          - incrementMode: 使用增量式PID算法
  *
  * @note 调用此函数后，控制输出值存储在obj->controlValue中
+ *
+ * @warning 注意事项：
+ *          - obj指针不能为NULL
+ *          - 建议在固定时间间隔调用以保证控制效果
+ *          - currentValue应为准确的测量值
  */
 void pidProcess(PID *obj, float currentValue);
 
